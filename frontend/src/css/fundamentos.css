@@ -1,0 +1,80 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --page: #f6f7fb;
+  --surface: #ffffff;
+  --surface-soft: #f0f1f5;
+  --input-surface: var(--surface-soft);
+  --header: #fbfbfd;
+  --text: #20232c;
+  --muted: #737782;
+  --muted-strong: #858994;
+  --text-soft: #535762;
+  --text-strong: #292c35;
+  --placeholder: #aaadb5;
+  --hover: #e9ebf1;
+  --selected: #e9edf6;
+  --selected-text: #294f98;
+  --line: #e8eaf0;
+  --accent: #315fb7;
+  --accent-soft: #e8eefb;
+  --danger: #a33b43;
+  --badge-bg: #d93036;
+  --shadow: 0 10px 35px rgb(25 34 56 / 8%);
+  --idea-surface: #fff1bd;
+  --idea-text: #54491e;
+  --notice-surface: #fff1bd;
+  --notice-text: #534920;
+  --notice-link: #315fb7;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: hsl(0 0% 16.08%);
+  --surface: hsl(0 0% 21.18%);
+  --surface-soft: hsl(0 0% 21.18%);
+  --input-surface: var(--page);
+  --header: hsl(0 0% 21.18%);
+  --text: #f1f6f7;
+  --muted: #b5c5c9;
+  --muted-strong: #8fb3bc;
+  --text-soft: #b5c5c9;
+  --text-strong: #f1f6f7;
+  --placeholder: #8fb3bc;
+  --hover: hsl(0 0% 93% / 10%);
+  --selected: var(--page);
+  --selected-text: var(--text-strong);
+  --line: rgb(220 240 244 / 12%);
+  --accent: #f02e67;
+  --accent-soft: rgb(240 46 103 / 18%);
+  --danger: #ffb1c1;
+  --badge-bg: #f02e67;
+  --shadow: 0 16px 36px rgb(0 0 0 / 42%), 0 4px 12px rgb(0 0 0 / 30%);
+  --idea-surface: hsl(0 0% 21.18%);
+  --idea-text: #f6d98b;
+  --notice-surface: rgb(198 166 90 / 14%);
+  --notice-text: #f6d98b;
+  --notice-link: #a3e5f0;
+}
+
+:root[data-theme="dark"] .button--primary { color: #000; }
+:root[data-theme="dark"] .button--primary:hover { background: #ff4d7f; }
+
+* { box-sizing: border-box; }
+::selection { background: #ffe66b; color: #29240f; }
+body {
+  zoom: 90%;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--page);
+  color: var(--text);
+}
+button, input, textarea, select { font: inherit; }
+button, a, select { -webkit-tap-highlight-color: transparent; }
+button { color: inherit; }
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+
