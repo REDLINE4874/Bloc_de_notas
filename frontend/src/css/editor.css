@@ -44,6 +44,31 @@
 .note-content-highlights .hljs-variable,.note-content-highlights .hljs-params,.note-content-highlights .hljs-property { color: #a13c58; }
 .note-content-highlights .hljs-meta,.note-content-highlights .hljs-symbol { color: #087c86; }
 .note-content code,.note-content-highlights code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
+.note-content pre[data-language],.note-content-highlights pre[data-language] { position: relative; margin: 12px 0; border: 1px solid var(--line); border-radius: 12px; background: var(--input-surface); color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.note-content pre[data-language]::before,.note-content-highlights pre[data-language]::before { display: block; padding: 12px 14px 0; color: var(--text-soft); content: attr(data-language); font: 650 12px/1.4 Inter, "Segoe UI", system-ui, sans-serif; }
+.note-content pre[data-language] > code,.note-content-highlights pre[data-language] > code { display: block; margin: 0; border: 0; padding: 10px 14px 12px; background: transparent; color: inherit; font-size: .9em; line-height: 1.6; white-space: inherit; overflow-wrap: inherit; }
+.note-content pre[data-language]::after,.note-content-highlights pre[data-language]::after { display: block; margin: 0 14px; border-top: 1px solid var(--line); padding: 9px 0 11px; color: var(--muted); content: "Usa el código con precaución."; font: 12px/1.4 Inter, "Segoe UI", system-ui, sans-serif; }
+.code-block-actions { position: absolute; z-index: 2; inset: 0; overflow: hidden; pointer-events: none; }
+.code-block-copy-control { position: absolute; top: var(--code-control-top); right: var(--code-control-right); display: flex; align-items: flex-start; gap: 6px; pointer-events: auto; }
+.code-block-copy-control[hidden] { display: none; }
+.code-block-copy-button { display: grid; min-inline-size: 34px; min-block-size: 34px; place-items: center; border: 1px solid var(--line); border-radius: 8px; padding: 5px; background: var(--surface); color: var(--text-soft); box-shadow: 0 2px 8px rgb(0 0 0 / 12%); cursor: pointer; }
+.code-block-plain-button { min-inline-size: 34px; min-block-size: 34px; border: 1px solid var(--line); border-radius: 8px; padding: 0 8px; background: var(--surface); color: var(--text-soft); box-shadow: 0 2px 8px rgb(0 0 0 / 12%); cursor: pointer; font-size: 11px; white-space: nowrap; }
+.code-block-plain-button:hover:not(:disabled) { background: var(--hover); color: var(--text); }
+.code-block-plain-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.code-block-plain-button:disabled { opacity: .55; cursor: default; }
+@media (pointer: coarse) {
+  .code-block-copy-button,.code-block-plain-button { min-inline-size: 44px; min-block-size: 44px; }
+}
+.code-block-copy-button:hover { background: var(--hover); color: var(--text); }
+.code-block-copy-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.code-block-copy-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+.code-block-copied-icon,.code-block-copy-button[data-copied] .code-block-copy-icon { display: none; }
+.code-block-copy-button[data-copied] .code-block-copied-icon { display: block; }
+.code-block-copy-status { position: absolute; inset-block-start: calc(100% + 5px); inset-inline-end: 0; border-radius: 6px; padding: 4px 7px; background: var(--text-strong); color: var(--surface); font-size: 11px; opacity: 0; pointer-events: none; transition: opacity .15s ease; white-space: nowrap; }
+.code-block-copy-button[data-copied] + .code-block-copy-status,.code-block-copy-button[data-failed] + .code-block-copy-status { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .code-block-copy-status { transition: none; }
+}
 :root[data-theme="dark"] .note-content-highlights .hljs-comment,:root[data-theme="dark"] .note-content-highlights .hljs-quote { color: #a4b0c1; }
 :root[data-theme="dark"] .note-content-highlights .hljs-keyword,:root[data-theme="dark"] .note-content-highlights .hljs-selector-tag,:root[data-theme="dark"] .note-content-highlights .hljs-literal { color: #d3a0eb; }
 :root[data-theme="dark"] .note-content-highlights .hljs-string,:root[data-theme="dark"] .note-content-highlights .hljs-doctag,:root[data-theme="dark"] .note-content-highlights .hljs-regexp { color: #91d6a8; }
@@ -55,6 +80,7 @@
 .note-content:empty::before { color: var(--muted-strong); content: attr(data-placeholder); pointer-events: none; }
 .note-content.is-find-open { color: transparent; -webkit-text-fill-color: transparent; caret-color: transparent; }
 .note-content.is-syntax-highlighted { color: transparent; -webkit-text-fill-color: transparent; caret-color: var(--text); }
+.note-content.is-syntax-highlighted pre[data-language] { background: transparent; }
 .note-title:disabled,.note-content[aria-readonly="true"] { color: var(--muted); opacity: 1; }
 .note-content:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .editor-hint { margin: 10px 0 0; color: var(--muted); font-size: 11px; }

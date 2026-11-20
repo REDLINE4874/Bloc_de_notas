@@ -155,6 +155,7 @@ function updateNoteFindHighlights() {
   noteContent.childNodes.forEach((node) => richOverlay.appendChild(node.cloneNode(true)));
   const richRoot = document.createElement("div");
   richRoot.appendChild(richOverlay);
+  richRoot.querySelectorAll("pre > code[id]").forEach((code) => code.removeAttribute("id"));
 
   if (!query) {
     noteContentHighlights.append(...Array.from(richRoot.childNodes));
@@ -193,7 +194,7 @@ function updateNoteFindHighlights() {
     }
     const start = plainTextOffset;
     Array.from(node.childNodes).forEach(collectTextRanges);
-    if (["DIV", "P"].includes(node.tagName) && plainTextOffset > start && !plainTextEndsWithNewline) {
+    if (["DIV", "P", "PRE"].includes(node.tagName) && plainTextOffset > start && !plainTextEndsWithNewline) {
       plainTextOffset += 1;
       plainTextEndsWithNewline = true;
     }
