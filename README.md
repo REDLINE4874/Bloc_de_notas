@@ -87,7 +87,8 @@ dentro del repositorio de Manual.
 Los estilos se separan por área y `src/css/estilos.css` importa los módulos en
 el orden visual requerido. La lógica se divide en autenticación, componentes,
 utilidades centrales y funciones de contenido enriquecido, biblioteca, editor,
-compartido y formato. El editor permite formato enriquecido e insertar código
-con resaltado de sintaxis mediante Highlight.js. Los scripts JavaScript se
+compartido y formato. El editor permite buscar dentro de una nota, aplicar
+formato enriquecido e insertar código con resaltado de sintaxis mediante
+Highlight.js. Los scripts JavaScript se
 cargan como scripts clásicos en el orden declarado en `index.html`, ya que
 comparten el estado central de la aplicación.
