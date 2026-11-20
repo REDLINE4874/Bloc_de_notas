@@ -1,74 +1,3 @@
-themeToggles.forEach((toggle) => toggle.addEventListener("click", toggleTheme));
-initializeTheme();
-initializeNoteFontSize();
-settingsButton.addEventListener("click", () => {
-  const willOpen = settingsMenu.hidden;
-  settingsMenu.hidden = !willOpen;
-  settingsButton.setAttribute("aria-expanded", String(willOpen));
-  if (willOpen) fontSizeOption.focus();
-  else {
-    fontSizePanel.hidden = true;
-    fontSizeOption.setAttribute("aria-expanded", "false");
-  }
-});
-fontSizeOption.addEventListener("click", () => {
-  const willOpen = fontSizePanel.hidden;
-  fontSizePanel.hidden = !willOpen;
-  fontSizeOption.setAttribute("aria-expanded", String(willOpen));
-  if (willOpen) document.getElementById("fontSizeSelect").focus();
-});
-function saveNoteFontSize(size) {
-  try {
-    localStorage.setItem(NOTE_FONT_SIZE_STORAGE_KEY, String(size));
-  } catch (error) {
-    setGlobalStatus(`No se pudo guardar el tamaño de fuente: ${error.message}`, true);
-  }
-}
-
-document.getElementById("fontSizeSelect").addEventListener("change", (event) => {
-  const size = Number(event.target.value);
-  applyNoteFontSize(size);
-  saveNoteFontSize(size);
-});
-
-document.getElementById("decreaseFontSize").addEventListener("click", () => {
-  const currentSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--note-font-size"), 10) || 16;
-  const size = currentSize - 1;
-  applyNoteFontSize(size);
-  saveNoteFontSize(size);
-});
-
-document.getElementById("increaseFontSize").addEventListener("click", () => {
-  const currentSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--note-font-size"), 10) || 16;
-  const size = currentSize + 1;
-  applyNoteFontSize(size);
-  saveNoteFontSize(size);
-});
-document.addEventListener("click", (event) => {
-  if (settingsMenu.hidden || event.target.closest(".settings-control")) return;
-  settingsMenu.hidden = true;
-  settingsButton.setAttribute("aria-expanded", "false");
-  fontSizePanel.hidden = true;
-  fontSizeOption.setAttribute("aria-expanded", "false");
-});
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !settingsMenu.hidden) {
-    if (!fontSizePanel.hidden) {
-      fontSizePanel.hidden = true;
-      fontSizeOption.setAttribute("aria-expanded", "false");
-      fontSizeOption.focus();
-    } else {
-      settingsMenu.hidden = true;
-      settingsButton.setAttribute("aria-expanded", "false");
-      settingsButton.focus();
-    }
-  }
-});
-initializeShareSelect("shareUsername", "Selecciona un usuario", []);
-initializeShareSelect("sharePermission", "Selecciona un permiso", [
-  { value: "view", label: "Solo lectura" },
-  { value: "edit", label: "Puede editar" },
-]);
 cancelConfirmation.addEventListener("click", () => finishConfirmation(false));
 acceptConfirmation.addEventListener("click", () => finishConfirmation(true));
 confirmDialog.addEventListener("cancel", (event) => {
@@ -149,20 +78,68 @@ if (!supabaseReady) {
   noteContent.addEventListener("keydown", (event) => {
     if (event.key !== "Tab" || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
     event.preventDefault();
-
-    const { selectionStart, selectionEnd, value } = noteContent;
-    if (value.length - (selectionEnd - selectionStart) >= noteContent.maxLength) return;
-
-    noteContent.setRangeText("\t", selectionStart, selectionEnd, "end");
+    const selection = window.getSelection();
+    const range = getEditorSelectionRange() || document.createRange();
+    if (readNoteContentText().length >= NOTE_MAX_LENGTH && range.collapsed) return;
+    range.deleteContents();
+    const tab = document.createTextNode("\t");
+    range.insertNode(tab);
+    range.setStartAfter(tab);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    saveEditorSelection();
     noteContent.dispatchEvent(new Event("input", { bubbles: true }));
   });
   noteContent.addEventListener("input", () => {
-    scheduleNoteSave();
+    if (getEditorTextLength() > NOTE_MAX_LENGTH) {
+      trimEditorContent(NOTE_MAX_LENGTH);
+      setGlobalStatus("El contenido de la nota admite hasta 20 000 caracteres.", true);
+    }
+    if (!fontSizeDialog.open) scheduleNoteSave();
     if (!noteFindPanel.hidden) {
       noteFindCurrent = 0;
-      updateNoteFindHighlights();
     }
+    updateNoteFindHighlights();
   });
+  noteContent.addEventListener("paste", (event) => {
+    event.preventDefault();
+    const pastedText = event.clipboardData?.getData("text/plain") || "";
+    const selection = window.getSelection();
+    const range = getEditorSelectionRange();
+    if (!range) return;
+    const availableLength = Math.max(0, NOTE_MAX_LENGTH - readNoteContentText().length + range.toString().length);
+    const text = pastedText.slice(0, availableLength);
+    range.deleteContents();
+    const pastedNode = document.createTextNode(text);
+    range.insertNode(pastedNode);
+    range.setStartAfter(pastedNode);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    noteContent.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  noteContent.addEventListener("copy", (event) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return;
+
+    const range = selection.getRangeAt(0);
+    const commonAncestor = range.commonAncestorContainer;
+    const selectedWithinEditor = commonAncestor === noteContent
+      || (commonAncestor instanceof Node && noteContent.contains(commonAncestor));
+    if (!selectedWithinEditor) return;
+
+    const copiedFragment = range.cloneContents();
+    const copiedRoot = document.createElement("div");
+    copiedRoot.append(copiedFragment);
+    const copiedText = getPlainTextFromRichContent(copiedRoot);
+    if (!copiedText) return;
+
+    event.preventDefault();
+    event.clipboardData?.setData("text/plain", copiedText);
+  });
+  noteContent.addEventListener("keyup", saveEditorSelection);
+  noteContent.addEventListener("mouseup", saveEditorSelection);
   noteContent.addEventListener("scroll", () => {
     noteContentHighlights.style.transform = `translate(${-noteContent.scrollLeft}px, ${-noteContent.scrollTop}px)`;
   }, { passive: true });
@@ -215,6 +192,7 @@ if (!supabaseReady) {
     if (!row) return;
     await flushNoteSave();
     activeNoteId = row.dataset.noteId;
+    saveOpenNoteState();
     renderNoteList();
     renderEditor();
     [...notesList.querySelectorAll('[role="tab"]')]
@@ -238,6 +216,7 @@ if (!supabaseReady) {
     const nextTab = tabs[(currentIndex + offset + tabs.length) % tabs.length];
     await flushNoteSave();
     activeNoteId = nextTab.dataset.noteId;
+    saveOpenNoteState();
     renderNoteList();
     renderEditor();
     [...notesList.querySelectorAll('[role="tab"]')]

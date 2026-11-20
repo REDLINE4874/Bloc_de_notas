@@ -28,21 +28,23 @@ No requiere servidor propio, instalación de dependencias ni compilación.
 │           │   ├── supabase-config.js
 │           │   └── site-auth.js
 │           ├── components/
-│           │   ├── theme.js
-│           │   └── typography.js
+│           │   └── theme.js
 │           ├── core/
 │           │   ├── state.js
 │           │   ├── ui.js
 │           │   └── notes-utils.js
 │           ├── features/
+│           │   ├── rich-content.js
 │           │   ├── library.js
 │           │   ├── editor.js
-│           │   └── sharing.js
+│           │   ├── sharing.js
+│           │   └── editor-formatting.js
 │           └── app.js                # Inicialización y eventos
 └── supabase/
     ├── notes.sql
     ├── profiles.sql
-    └── note-sharing.sql
+    ├── note-sharing.sql
+    └── note-tab-states.sql
 ```
 
 ## Desarrollo local
@@ -68,22 +70,24 @@ por una clave `service_role`.
 
 Los scripts de `supabase/` documentan el esquema compartido: `notes.sql`
 configura las notas, `profiles.sql` los perfiles y `note-sharing.sql` el
-compartido por nombre de usuario. Ya que el backend pertenece a ambas apps,
-no vuelvas a ejecutar estos scripts si la base de datos actual ya está
-configurada.
+compartido por nombre de usuario. `note-tab-states.sql` sincroniza entre
+dispositivos las pestañas abiertas y la nota activa. Ya que el backend pertenece
+a ambas aplicaciones, no vuelvas a ejecutar estos scripts si la base de datos
+actual ya está configurada.
 
 ## Publicación
 
 Publica el contenido de `frontend/` como raíz del sitio. El manifiesto y el
 service worker mantienen la instalación PWA y la caché separados del Manual.
-La copia que actualmente vive dentro del repositorio de Manual se conserva
-temporalmente para no romper su enlace hasta que se configure la URL pública
-de este proyecto independiente.
+Notas se mantiene en este repositorio independiente y no requiere una copia
+dentro del repositorio de Manual.
 
 ## Organización del frontend
 
 Los estilos se separan por área y `src/css/estilos.css` importa los módulos en
 el orden visual requerido. La lógica se divide en autenticación, componentes,
-utilidades centrales y funciones de biblioteca, editor y compartido. Los
-scripts JavaScript se cargan como scripts clásicos en el orden declarado en
-`index.html`, ya que comparten el estado central de la aplicación.
+utilidades centrales y funciones de contenido enriquecido, biblioteca, editor,
+compartido y formato. El editor permite formato enriquecido e insertar código
+con resaltado de sintaxis mediante Highlight.js. Los scripts JavaScript se
+cargan como scripts clásicos en el orden declarado en `index.html`, ya que
+comparten el estado central de la aplicación.

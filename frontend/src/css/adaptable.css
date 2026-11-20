@@ -1,7 +1,6 @@
 @media (max-width: 445px) {
   .app-header { padding-inline: 18px; }
   .app-header__top { flex-wrap: wrap; gap: 8px; }
-  .app-header__controls { justify-content: flex-start; }
   .app-header__user-tools { margin-left: auto; }
   .brand { gap: 7px; font-size: 16px; }
   .brand__icon { width: 29px; height: 29px; border-radius: 9px; font-size: 15px; }
@@ -12,16 +11,13 @@
   .note-actions { gap: 3px; }
   .note-actions .button { min-height: 34px; padding-inline: 9px; font-size: 11px; }
   .note-title { margin-top: 10px; }
-  .note-content-wrap { font-size: 15px; }
 }
 
 @media (max-width: 1000px) {
   .auth-card { padding: 26px 22px; }
-  .auth-theme-toggle { top: 12px; right: 12px; }
   .app-header { padding: 10px 12px 0; }
   .app-header__top { gap: 6px; }
-  .app-header__controls { justify-content: flex-start; gap: 4px; }
-  .section-nav-button { min-height: 32px; padding-inline: 10px; font-size: 11px; }
+  .app-header__controls { gap: 4px; }
   .install-button { min-height: 32px; padding-inline: 9px; font-size: 11px; }
   .note-editor__meta { flex: 1 1 100%; }
   .note-actions { margin-left: auto; }
@@ -46,6 +42,9 @@
   .note-date { font-size: 10px; }
   .note-actions .button { min-height: 32px; padding-inline: 7px; font-size: 10px; }
   .note-content-wrap { margin-top: 12px; }
+  .format-dialog { padding: 18px; }
+  .format-toolbar { flex-wrap: wrap; }
+  .format-toolbar__family { width: min(190px, 52vw); }
   .note-find { top: 8px; right: 12px; width: calc(100vw - 24px); }
   .note-find__count { min-width: 72px; font-size: 10px; }
 }
@@ -57,4 +56,3 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
-

@@ -11,26 +11,44 @@ function renderSharedUsers(note) {
   `).join("");
 }
 
+function getNoteSharingStatus(note) {
+  if (!isNoteOwner(note)) {
+    return `· Compartida por ${shareOwners.get(note.id) || "Usuario"}`;
+  }
+  const usernames = (ownerShares.get(note.id) || [])
+    .map((share) => share.recipient_username || share.recipient_email || "Usuario");
+  return usernames.length ? `· Compartida con ${usernames.join(", ")}` : "";
+}
+
 function renderEditor() {
   const note = currentNote();
+  if (note) markSharedNoteAsRead(note);
+  fontSizeOption.setAttribute("aria-disabled", String(!note || !canEditNote(note)));
   emptyState.hidden = Boolean(note);
   noteEditor.hidden = !note;
   if (!note) {
+    noteSharingStatus.textContent = "";
+    noteSharingStatus.removeAttribute("title");
     draftNotice.hidden = true;
     sharingSection.hidden = true;
     noteFindPanel.hidden = true;
     noteContentHighlights.hidden = true;
     noteContent.classList.remove("is-find-open");
+    noteContent.classList.remove("is-syntax-highlighted");
     return;
   }
 
   const editable = canEditNote(note);
   const owned = isNoteOwner(note);
   noteTitle.value = note.title || "";
-  noteContent.value = note.content || "";
+  setNoteContent(note.content || "");
   noteTitle.disabled = !editable;
-  noteContent.disabled = !editable;
+  noteContent.contentEditable = String(editable);
+  noteContent.setAttribute("aria-readonly", String(!editable));
   noteDate.textContent = formatNoteDate(note.note_date);
+  noteSharingStatus.textContent = getNoteSharingStatus(note);
+  if (noteSharingStatus.textContent) noteSharingStatus.title = noteSharingStatus.textContent.slice(2);
+  else noteSharingStatus.removeAttribute("title");
   document.getElementById("shareNote").hidden = !owned;
   document.getElementById("deleteNote").hidden = !owned;
   document.getElementById("leaveSharedNote").hidden = !(!owned && note.user_id !== currentUser?.id);
@@ -49,10 +67,8 @@ function renderEditor() {
     && typeof draft.content === "string"
     && (!Number.isFinite(serverTime) || !Number.isFinite(draftTime) || draftTime > serverTime)
   );
-  if (!noteFindPanel.hidden) {
-    noteFindCurrent = 0;
-    updateNoteFindHighlights();
-  }
+  noteFindCurrent = 0;
+  updateNoteFindHighlights();
 }
 
 function updateListPreview(noteId, title, content, updatedAt) {
@@ -108,7 +124,7 @@ function scheduleNoteSave() {
   if (!note || !canEditNote(note)) return;
   const revision = (noteRevisions.get(note.id) || 0) + 1;
   noteRevisions.set(note.id, revision);
-  const snapshot = { title: noteTitle.value, content: noteContent.value };
+  const snapshot = { title: noteTitle.value, content: serializeNoteContent() };
   writeLocalDraft(note.id, { ...snapshot, savedAt: new Date().toISOString() });
   setSaveStatus("Cambios sin guardar");
   renderNoteList();
@@ -119,18 +135,26 @@ function scheduleNoteSave() {
   }, 700);
 }
 
+function noteContentHasChanged(note) {
+  const savedContent = note.content || "";
+  if (savedContent.startsWith(NOTE_CONTENT_PREFIX)) {
+    return serializeNoteContent() !== savedContent;
+  }
+  return readNoteContentText() !== getNoteContentText(savedContent);
+}
+
 async function flushNoteSave() {
   const note = currentNote();
   if (!note || !canEditNote(note)) return saveQueue;
   const hasPendingChanges = saveTimer !== null
     || noteTitle.value !== (note.title || "")
-    || noteContent.value !== (note.content || "");
+    || noteContentHasChanged(note);
   if (!hasPendingChanges) return saveQueue;
   window.clearTimeout(saveTimer);
   saveTimer = null;
   const revision = (noteRevisions.get(note.id) || 0) + 1;
   noteRevisions.set(note.id, revision);
-  const snapshot = { title: noteTitle.value, content: noteContent.value };
+  const snapshot = { title: noteTitle.value, content: serializeNoteContent() };
   writeLocalDraft(note.id, { ...snapshot, savedAt: new Date().toISOString() });
   return queueNoteSave(note.id, snapshot, revision);
 }
@@ -140,7 +164,7 @@ function restoreDraft() {
   const draft = note && readLocalDraft(note.id);
   if (!note || !draft) return;
   noteTitle.value = draft.title;
-  noteContent.value = draft.content;
+  setNoteContent(draft.content);
   draftNotice.hidden = true;
   scheduleNoteSave();
 }
@@ -151,7 +175,7 @@ function discardDraft() {
   removeLocalDraft(note.id);
   draftNotice.hidden = true;
   noteTitle.value = note.title || "";
-  noteContent.value = note.content || "";
+  setNoteContent(note.content || "");
   setSaveStatus("Borrador local descartado");
 }
 
@@ -210,18 +234,29 @@ async function loadNotes() {
   }
 
   loadedNotes = data || [];
+  const incomingSharedNoteIds = new Set(
+    loadedNotes.filter((note) => note.user_id !== currentUser.id).map((note) => note.id),
+  );
+  loadReadSharedNoteIds(incomingSharedNoteIds);
   const savedNoteIds = new Set(loadedNotes.map((note) => note.id));
   if (openTabsUserId !== currentUser.id) {
     openTabsUserId = currentUser.id;
-    const savedOpenNoteIds = readOpenNoteIds();
-    openNoteIds = savedOpenNoteIds === null
-      ? (loadedNotes[0] ? [loadedNotes[0].id] : [])
-      : savedOpenNoteIds.filter((noteId) => savedNoteIds.has(noteId));
+    const savedState = await readRemoteOpenTabState();
+    if (savedState) {
+      openNoteIds = savedState.noteIds.filter((noteId) => savedNoteIds.has(noteId));
+      activeNoteId = savedState.activeNoteId;
+    } else {
+      const savedOpenNoteIds = readOpenNoteIds();
+      const firstOwnedNote = loadedNotes.find((note) => note.user_id === currentUser.id);
+      openNoteIds = savedOpenNoteIds === null
+        ? (firstOwnedNote ? [firstOwnedNote.id] : [])
+        : savedOpenNoteIds.filter((noteId) => savedNoteIds.has(noteId));
+    }
   } else {
     openNoteIds = openNoteIds.filter((noteId) => savedNoteIds.has(noteId));
   }
   if (!openNoteIds.includes(activeNoteId)) activeNoteId = openNoteIds[0] || null;
-  saveOpenNoteIds();
+  saveOpenNoteState();
   renderNoteList();
   renderLibrarySection();
   renderEditor();
@@ -245,8 +280,8 @@ async function createNote(title = "", content = "", successMessage = "Nota nueva
   }
   loadedNotes.unshift(data);
   openNoteIds.unshift(data.id);
-  saveOpenNoteIds();
   activeNoteId = data.id;
+  saveOpenNoteState();
   renderNoteList();
   renderLibrarySection();
   renderEditor();
@@ -299,11 +334,11 @@ async function deleteNoteRecord(note) {
   }
   loadedNotes = loadedNotes.filter((item) => item.id !== note.id);
   openNoteIds = openNoteIds.filter((noteId) => noteId !== note.id);
-  saveOpenNoteIds();
   removeLocalDraft(note.id);
   if (activeNoteId === note.id) {
     activeNoteId = openNoteIds[0] || null;
   }
+  saveOpenNoteState();
   renderNoteList();
   renderLibrarySection();
   renderEditor();

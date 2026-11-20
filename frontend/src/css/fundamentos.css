@@ -19,9 +19,11 @@
   --selected-text: #294f98;
   --line: #e8eaf0;
   --accent: #315fb7;
+  --shared-note-accent: #007b67;
   --accent-soft: #e8eefb;
   --danger: #a33b43;
   --badge-bg: #d93036;
+  --badge-text: #fff;
   --shadow: 0 10px 35px rgb(25 34 56 / 8%);
   --idea-surface: #fff1bd;
   --idea-text: #54491e;
@@ -47,10 +49,12 @@
   --selected: var(--page);
   --selected-text: var(--text-strong);
   --line: rgb(220 240 244 / 12%);
-  --accent: #f02e67;
-  --accent-soft: rgb(240 46 103 / 18%);
+  --accent: #F5E642;
+  --shared-note-accent: #63d7b6;
+  --accent-soft: rgb(245 230 66 / 18%);
   --danger: #ffb1c1;
-  --badge-bg: #f02e67;
+  --badge-bg: #F5E642;
+  --badge-text: #292c35;
   --shadow: 0 16px 36px rgb(0 0 0 / 42%), 0 4px 12px rgb(0 0 0 / 30%);
   --idea-surface: hsl(0 0% 21.18%);
   --idea-text: #f6d98b;
@@ -60,14 +64,14 @@
 }
 
 :root[data-theme="dark"] .button--primary { color: #000; }
-:root[data-theme="dark"] .button--primary:hover { background: #ff4d7f; }
+:root[data-theme="dark"] .button--primary:hover { background: #E4D52C; }
 
 * { box-sizing: border-box; }
 ::selection { background: #ffe66b; color: #29240f; }
 body {
-  zoom: 90%;
   width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   background: var(--page);
   color: var(--text);

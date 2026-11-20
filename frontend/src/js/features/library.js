@@ -15,11 +15,11 @@ function renderNoteList() {
 
   notesEmpty.hidden = true;
   notesList.innerHTML = openNotes.map((note) => {
-    const shared = note.user_id !== currentUser?.id;
+    const sharedWithMe = note.user_id !== currentUser?.id;
     const title = note.title?.trim() || "Nota sin título";
-    const meta = shared ? '<span class="note-tab__meta">Compartida contigo</span>' : "";
+    const meta = sharedWithMe ? '<span class="note-tab__meta">Compartida contigo</span>' : "";
     return `
-      <div class="note-tab-item${note.id === activeNoteId ? " is-active" : ""}" role="presentation">
+      <div class="note-tab-item${note.id === activeNoteId ? " is-active" : ""}${sharedWithMe ? " is-shared-with-me" : ""}" role="presentation">
         <button id="note-tab-${escapeHtml(note.id)}" class="note-tab" type="button" role="tab" aria-selected="${note.id === activeNoteId}" aria-controls="noteEditor" tabindex="${note.id === activeNoteId ? "0" : "-1"}" data-note-id="${escapeHtml(note.id)}" title="${escapeHtml(title)}">
           <span class="note-tab__title">${escapeHtml(title)}</span>
           ${meta}
@@ -52,11 +52,10 @@ function renderLibrarySection() {
       ? sharedNotes
       : ownedNotes;
 
-  myNotesCount.textContent = String(ownedNotes.length);
-  sharedNotesCount.textContent = String(sharedNotes.length);
-  myNotesCount.hidden = ownedNotes.length === 0;
-  sharedNotesCount.hidden = sharedNotes.length === 0;
-  libraryTitle.textContent = searching ? "Buscar notas" : showingShared ? "Compartidas" : "Mis notas";
+  updateSharedNotesCount();
+  libraryTitle.textContent = searching
+    ? "Buscar notas"
+    : `${showingShared ? "Compartidas" : "Mis notas"} (${visibleNotes.length})`;
   libraryDescription.textContent = searching
     ? "Busca por título o contenido en tus notas y las compartidas contigo."
     : showingShared
@@ -72,6 +71,7 @@ function renderLibrarySection() {
 
   libraryNotesList.innerHTML = visibleNotes.map((note) => {
     const owned = isNoteOwner(note);
+    const isNewSharedNote = showingShared && !owned && !readSharedNoteIds.has(note.id);
     const title = note.title?.trim() || "Nota sin título";
     let meta = formatNoteDate(note.note_date);
     let removeAction = activeSection === "my-notes" && owned ? "Eliminar" : "";
@@ -80,7 +80,7 @@ function renderLibrarySection() {
       meta = owned
         ? (outgoingShareIds.has(note.id) ? "Compartida por ti" : "Tu nota")
         : `Compartida por ${shareOwners.get(note.id) || "otro usuario"}`;
-      const content = note.content?.trim().replace(/\s+/g, " ") || "";
+      const content = getNoteContentText(note.content).trim().replace(/\s+/g, " ");
       preview = content.length > 120 ? `${content.slice(0, 120)}…` : content;
     } else if (showingShared && owned) {
       const recipientCount = ownerShares.get(note.id)?.length || 0;
@@ -92,8 +92,9 @@ function renderLibrarySection() {
 
     return `
       <div class="notes-library-item" role="group" aria-label="Nota ${escapeHtml(title)}">
-        <button class="notes-library-item__open" type="button" data-open-note-id="${escapeHtml(note.id)}" aria-label="Abrir ${escapeHtml(title)}">
+        <button class="notes-library-item__open" type="button" data-open-note-id="${escapeHtml(note.id)}" aria-label="Abrir ${escapeHtml(title)}${isNewSharedNote ? ", nueva" : ""}">
           <span class="notes-library-item__title">${escapeHtml(title)}</span>
+          ${isNewSharedNote ? '<span class="notes-library-item__new">Nueva</span>' : ""}
           <span class="notes-library-item__meta">${escapeHtml(meta)}</span>
           ${searching && preview ? `<span class="notes-library-item__preview">${escapeHtml(preview)}</span>` : ""}
         </button>
@@ -138,13 +139,25 @@ async function openNoteSearch() {
 }
 
 function updateNoteFindHighlights() {
+  if (noteFindPanel.hidden) {
+    noteFindMatches = [];
+    updateSyntaxHighlights();
+    return;
+  }
+
+  noteContent.classList.remove("is-syntax-highlighted");
   const query = noteFindInput.value;
-  const content = noteContent.value;
+  const content = getPlainTextFromRichContent(noteContent);
   noteFindMatches = [];
   noteContentHighlights.replaceChildren();
 
+  const richOverlay = document.createDocumentFragment();
+  noteContent.childNodes.forEach((node) => richOverlay.appendChild(node.cloneNode(true)));
+  const richRoot = document.createElement("div");
+  richRoot.appendChild(richOverlay);
+
   if (!query) {
-    noteContentHighlights.append(document.createTextNode(content));
+    noteContentHighlights.append(...Array.from(richRoot.childNodes));
     noteFindCount.textContent = "0 de 0";
     noteFindPrevious.disabled = true;
     noteFindNext.disabled = true;
@@ -159,17 +172,57 @@ function updateNoteFindHighlights() {
   }
 
   noteFindCurrent = Math.min(noteFindCurrent, Math.max(noteFindMatches.length - 1, 0));
-  let textFrom = 0;
-  noteFindMatches.forEach((match, index) => {
-    noteContentHighlights.append(document.createTextNode(content.slice(textFrom, match.start)));
-    const mark = document.createElement("mark");
-    mark.dataset.findIndex = String(index);
-    mark.textContent = content.slice(match.start, match.end);
-    if (index === noteFindCurrent) mark.classList.add("is-current");
-    noteContentHighlights.append(mark);
-    textFrom = match.end;
+  noteContentHighlights.append(...Array.from(richRoot.childNodes));
+
+  let plainTextOffset = 0;
+  let plainTextEndsWithNewline = false;
+  const textNodes = [];
+  function collectTextRanges(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const start = plainTextOffset;
+      plainTextOffset += node.nodeValue.length;
+      plainTextEndsWithNewline = node.nodeValue.endsWith("\n");
+      textNodes.push({ node, start, end: plainTextOffset });
+      return;
+    }
+    if (!(node instanceof HTMLElement)) return;
+    if (node.tagName === "BR") {
+      plainTextOffset += 1;
+      plainTextEndsWithNewline = true;
+      return;
+    }
+    const start = plainTextOffset;
+    Array.from(node.childNodes).forEach(collectTextRanges);
+    if (["DIV", "P"].includes(node.tagName) && plainTextOffset > start && !plainTextEndsWithNewline) {
+      plainTextOffset += 1;
+      plainTextEndsWithNewline = true;
+    }
+  }
+  Array.from(noteContentHighlights.childNodes).forEach(collectTextRanges);
+
+  textNodes.forEach(({ node, start, end }) => {
+    if (!node.nodeValue || start === end) return;
+    const segments = [];
+    let textFrom = start;
+    noteFindMatches.forEach((match, index) => {
+      const overlapStart = Math.max(start, match.start);
+      const overlapEnd = Math.min(end, match.end);
+      if (overlapStart >= overlapEnd) return;
+      if (textFrom < overlapStart) {
+        segments.push(document.createTextNode(node.nodeValue.slice(textFrom - start, overlapStart - start)));
+      }
+      const mark = document.createElement("mark");
+      mark.dataset.findIndex = String(index);
+      mark.textContent = node.nodeValue.slice(overlapStart - start, overlapEnd - start);
+      if (index === noteFindCurrent) mark.classList.add("is-current");
+      segments.push(mark);
+      textFrom = overlapEnd;
+    });
+    if (textFrom < end) {
+      segments.push(document.createTextNode(node.nodeValue.slice(textFrom - start)));
+    }
+    if (segments.length > 0) node.replaceWith(...segments);
   });
-  noteContentHighlights.append(document.createTextNode(content.slice(textFrom)));
   noteFindCount.textContent = noteFindMatches.length
     ? `${noteFindCurrent + 1} de ${noteFindMatches.length}`
     : "No hay resultados";
@@ -218,6 +271,22 @@ function moveNoteFindMatch(direction) {
 }
 
 async function handleGlobalKeydown(event) {
+  if (
+    event.key === "F5"
+    && !event.ctrlKey
+    && !event.metaKey
+    && !event.altKey
+    && !event.shiftKey
+    && !event.repeat
+    && activeSection === "editor"
+    && document.activeElement === noteContent
+    && !shareDialog.open
+    && !confirmDialog.open
+  ) {
+    if (insertShortDateTime()) event.preventDefault();
+    return;
+  }
+
   if (
     (event.ctrlKey || event.metaKey)
     && !event.altKey

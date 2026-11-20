@@ -1,4 +1,4 @@
-const CACHE_NAME = "notas-standalone-shell-v2";
+const CACHE_NAME = "notas-standalone-shell-v3";
 const CACHE_PREFIX = "notas-standalone-shell-";
 const APP_SHELL = new URL("./", self.location.href).toString();
 const SHELL_FILES = [
@@ -13,12 +13,13 @@ const SHELL_FILES = [
   new URL("./src/js/core/state.js", self.location.href).toString(),
   new URL("./src/js/core/ui.js", self.location.href).toString(),
   new URL("./src/js/components/theme.js", self.location.href).toString(),
-  new URL("./src/js/components/typography.js", self.location.href).toString(),
+  new URL("./src/js/features/rich-content.js", self.location.href).toString(),
   new URL("./src/js/core/notes-utils.js", self.location.href).toString(),
   new URL("./src/js/auth/site-auth.js", self.location.href).toString(),
   new URL("./src/js/features/library.js", self.location.href).toString(),
   new URL("./src/js/features/editor.js", self.location.href).toString(),
   new URL("./src/js/features/sharing.js", self.location.href).toString(),
+  new URL("./src/js/features/editor-formatting.js", self.location.href).toString(),
   new URL("./src/js/app.js", self.location.href).toString(),
   new URL("./src/js/auth/supabase-config.js", self.location.href).toString(),
   new URL("./manifest.webmanifest", self.location.href).toString(),

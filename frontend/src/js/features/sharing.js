@@ -51,6 +51,12 @@ function setShareSelectValue(selectId, value) {
   });
 }
 
+function shareSelectHasOption(selectId, value) {
+  const root = document.querySelector(`[data-share-select="${selectId}"]`);
+  return Array.from(root.querySelectorAll('[role="option"]'))
+    .some((option) => option.dataset.value === value);
+}
+
 function setShareSelectOptions(selectId, items) {
   const root = document.querySelector(`[data-share-select="${selectId}"]`);
   const options = root.querySelector(".share-select__options");
@@ -80,7 +86,7 @@ function setShareSelectOptions(selectId, items) {
   );
 }
 
-function initializeShareSelect(selectId, placeholder, items) {
+function initializeShareSelect(selectId, placeholder, items, onSelect) {
   const root = document.querySelector(`[data-share-select="${selectId}"]`);
   const trigger = root.querySelector(".share-select__trigger");
   const options = root.querySelector(".share-select__options");
@@ -116,12 +122,15 @@ function initializeShareSelect(selectId, placeholder, items) {
   options.addEventListener("click", (event) => {
     const option = event.target.closest('[role="option"]');
     if (!option || !options.contains(option)) return;
-    setShareSelectValue(selectId, option.dataset.value);
+    const value = option.dataset.value;
+    setShareSelectValue(selectId, value);
     if (selectId === "shareUsername") {
       shareStatus.textContent = "";
       shareStatus.classList.remove("is-error");
     }
     closeShareSelect(root, true);
+    if (selectId === "codeLanguageSelect") restoreEditorSelection();
+    onSelect?.(value);
   });
 
   root.addEventListener("keydown", (event) => {
@@ -247,8 +256,8 @@ async function openNoteFromLibrary(noteId) {
   if (!note) return;
   await flushNoteSave();
   if (!openNoteIds.includes(note.id)) openNoteIds.push(note.id);
-  saveOpenNoteIds();
   activeNoteId = note.id;
+  saveOpenNoteState();
   activeSection = "editor";
   updateSectionVisibility();
   renderNoteList();
@@ -263,13 +272,23 @@ async function closeNoteTab(noteId) {
   if (tabIndex < 0) return;
   await flushNoteSave();
   openNoteIds = openNoteIds.filter((id) => id !== noteId);
-  saveOpenNoteIds();
   if (activeNoteId === noteId) {
     activeNoteId = openNoteIds[Math.min(tabIndex, openNoteIds.length - 1)] || null;
   }
+  saveOpenNoteState();
   renderNoteList();
   renderEditor();
   const activeTab = notesList.querySelector('[role="tab"][aria-selected="true"]');
   (activeTab || openMyNotes).focus();
 }
+
+themeToggles.forEach((toggle) => toggle.addEventListener("click", toggleTheme));
+initializeTheme();
+settingsButton.addEventListener("click", () => {
+  const willOpen = settingsMenu.hidden;
+  settingsMenu.hidden = !willOpen;
+  settingsButton.setAttribute("aria-expanded", String(willOpen));
+  if (willOpen) fontSizeOption.focus();
+  else fontSizeOption.setAttribute("aria-expanded", "false");
+});
 

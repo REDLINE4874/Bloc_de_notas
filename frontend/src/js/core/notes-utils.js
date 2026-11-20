@@ -17,7 +17,7 @@ function normalizeSearchText(value) {
 
 function noteMatchesSearch(note, query) {
   const terms = normalizeSearchText(query).trim().split(/\s+/).filter(Boolean);
-  const searchableText = normalizeSearchText(`${note.title || ""}\n${note.content || ""}`);
+  const searchableText = normalizeSearchText(`${note.title || ""}\n${getNoteContentText(note.content)}`);
   return terms.length > 0 && terms.every((term) => searchableText.includes(term));
 }
 
@@ -69,12 +69,97 @@ function readOpenNoteIds() {
   }
 }
 
-function saveOpenNoteIds() {
+async function readRemoteOpenTabState() {
+  const { data, error } = await client
+    .from(OPEN_TAB_STATE_TABLE)
+    .select("note_ids, active_note_id")
+    .eq("user_id", currentUser.id)
+    .maybeSingle();
+  if (error) {
+    setGlobalStatus(`No se pudieron sincronizar las pestañas abiertas: ${error.message}`, true);
+    return null;
+  }
+  if (!data) return null;
+  if (!Array.isArray(data.note_ids)
+    || !data.note_ids.every((noteId) => typeof noteId === "string")
+    || (data.active_note_id !== null && typeof data.active_note_id !== "string")) {
+    setGlobalStatus("No se pudieron sincronizar las pestañas abiertas: el estado guardado no es válido.", true);
+    return null;
+  }
+  return {
+    noteIds: [...new Set(data.note_ids)],
+    activeNoteId: data.active_note_id,
+  };
+}
+
+function saveOpenNoteState() {
   try {
     localStorage.setItem(openTabsKey(), JSON.stringify(openNoteIds));
   } catch (error) {
     setGlobalStatus(`No se pudieron guardar las pestañas abiertas: ${error.message}`, true);
   }
+
+  if (!currentUser) return;
+  const state = {
+    user_id: currentUser.id,
+    note_ids: [...openNoteIds],
+    active_note_id: activeNoteId,
+  };
+  openTabSaveQueue = openTabSaveQueue.then(async () => {
+    const { error } = await client
+      .from(OPEN_TAB_STATE_TABLE)
+      .upsert(state, { onConflict: "user_id" });
+    if (error) throw error;
+  }).catch((error) => {
+    setGlobalStatus(`No se pudieron sincronizar las pestañas abiertas: ${error.message}`, true);
+  });
+}
+
+function readSharedNotesKey() {
+  return `${READ_SHARED_NOTES_PREFIX}-${currentUser?.id}`;
+}
+
+function loadReadSharedNoteIds(sharedNoteIds) {
+  let savedIds;
+  try {
+    const savedValue = localStorage.getItem(readSharedNotesKey());
+    savedIds = savedValue === null ? [] : JSON.parse(savedValue);
+  } catch (error) {
+    setGlobalStatus(`No se pudo leer el estado de notas compartidas: ${error.message}`, true);
+    readSharedNoteIds = new Set();
+    return;
+  }
+  if (!Array.isArray(savedIds) || !savedIds.every((noteId) => typeof noteId === "string")) {
+    setGlobalStatus("No se pudo leer el estado de notas compartidas: el formato guardado no es válido.", true);
+    readSharedNoteIds = new Set();
+    return;
+  }
+  readSharedNoteIds = new Set(savedIds.filter((noteId) => sharedNoteIds.has(noteId)));
+}
+
+function saveReadSharedNoteIds() {
+  try {
+    localStorage.setItem(readSharedNotesKey(), JSON.stringify([...readSharedNoteIds]));
+  } catch (error) {
+    setGlobalStatus(`No se pudo guardar el estado de notas compartidas: ${error.message}`, true);
+  }
+}
+
+function updateSharedNotesCount() {
+  const unreadCount = loadedNotes.filter((note) => !isNoteOwner(note) && !readSharedNoteIds.has(note.id)).length;
+  sharedNotesCount.textContent = String(unreadCount);
+  sharedNotesCount.hidden = unreadCount === 0;
+  openSharedNotes.setAttribute(
+    "aria-label",
+    unreadCount ? `Compartidas, ${unreadCount} ${unreadCount === 1 ? "nota nueva" : "notas nuevas"}` : "Compartidas",
+  );
+}
+
+function markSharedNoteAsRead(note) {
+  if (isNoteOwner(note) || readSharedNoteIds.has(note.id)) return;
+  readSharedNoteIds.add(note.id);
+  saveReadSharedNoteIds();
+  updateSharedNotesCount();
 }
 
 function readLocalDraft(noteId) {
