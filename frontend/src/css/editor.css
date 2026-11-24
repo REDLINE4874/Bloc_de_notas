@@ -32,7 +32,7 @@
 .note-title { grid-row: 2; grid-column: 1 / -1; margin: 2px 0 0; padding: 0; font-size: clamp(26px, 4vw, 39px); font-weight: 700; letter-spacing: -.045em; }
 .note-title::placeholder { color: var(--placeholder); }
 .note-content-wrap { position: relative; display: flex; min-height: 0; flex: 1; overflow: hidden; margin-top: 19px; font-size: 16px; line-height: 1.8; }
-.note-content-highlights { position: absolute; z-index: 0; inset: 0; overflow: hidden; color: var(--text); white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; pointer-events: none; }
+.note-content-highlights { position: absolute; z-index: 0; inset: 0; overflow: visible; color: var(--text); white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; pointer-events: none; }
 .note-content-highlights[hidden] { display: none; }
 .note-content-highlights mark { border-radius: 2px; background: #ffe66b; color: #25220f; text-decoration: underline; text-decoration-color: #d7a900; text-decoration-thickness: 1px; text-underline-offset: 2px; }
 .note-content-highlights mark.is-current { background: #ffbf47; text-decoration-thickness: 2px; }

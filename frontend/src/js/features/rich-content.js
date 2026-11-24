@@ -360,7 +360,10 @@ function updateSyntaxHighlights() {
         return;
       }
       if (!(node instanceof HTMLElement) || node.tagName === "CODE") return;
-      if (node.tagName === "SPAN" && node.dataset.language === "plain") return;
+      if (node.tagName === "SPAN" && node.dataset.language === "plain") {
+        if (highlightAutomaticTextNode(node)) highlightedCount += 1;
+        return;
+      }
       if (["DIV", "P"].includes(node.tagName)) {
         const hasNestedElements = Array.from(node.children).some((child) => child.tagName !== "BR");
         if (!hasNestedElements) {
