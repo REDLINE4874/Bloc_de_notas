@@ -24,7 +24,7 @@ function renderNoteList() {
           <span class="note-tab__title">${escapeHtml(title)}</span>
           ${meta}
         </button>
-        <button class="note-tab__close" type="button" data-close-note-id="${escapeHtml(note.id)}" aria-label="Cerrar pestaña ${escapeHtml(title)}" title="Cerrar pestaña">×</button>
+        <button class="note-tab__close" type="button" data-close-note-id="${escapeHtml(note.id)}" aria-label="Cerrar pestaña ${escapeHtml(title)}" title="Cerrar pestaña"><span class="material-symbols-outlined" aria-hidden="true">cancel</span></button>
       </div>
     `;
   }).join("");

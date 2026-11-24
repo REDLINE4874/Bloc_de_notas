@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     <link rel="icon" href="assets/icons/logoapp.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png" />
     <link rel="manifest" href="manifest.webmanifest" />
@@ -81,11 +82,11 @@
               <span class="floating-label" role="tooltip">Lienzo</span>
             </button>
             <button class="icon-button section-icon-button my-notes-button" id="openMyNotes" type="button" aria-label="Mis notas" aria-controls="libraryView">
-              <svg class="material-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM10 16H7v-2h3v2zm7 0h-5v-2h5v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/></svg>
+              <span class="material-symbols-outlined" aria-hidden="true">sticky_note_2</span>
               <span class="floating-label" role="tooltip">Mis notas</span>
             </button>
             <button class="icon-button section-icon-button shared-notes-button" id="openSharedNotes" type="button" aria-label="Compartidas" aria-controls="libraryView">
-              <svg class="material-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-.36 0-.69.08-1 .19.63.76 1 1.74 1 2.81s-.37 2.05-1 2.81c.31.11.64.19 1 .19zM8 11c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 .5c-.29 0-.62.02-.97.05 1.16.84 1.97 1.92 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+              <span class="material-symbols-outlined" aria-hidden="true">folder_shared</span>
               <span class="shared-notes-count" id="sharedNotesCount" hidden>0</span>
               <span class="floating-label" role="tooltip">Compartidas</span>
             </button>
@@ -131,19 +132,19 @@
           </div>
           <div class="note-tabbar__content">
             <button class="icon-button icon-button--small tab-scroll" id="scrollTabsLeft" type="button" aria-label="Desplazar pestañas a la izquierda" aria-controls="notesList" title="Pestañas anteriores" hidden>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+              <span class="material-symbols-outlined" aria-hidden="true">arrow_left</span>
             </button>
             <nav class="notes-list" id="notesList" role="tablist" aria-label="Pestañas de notas"></nav>
             <p class="tabs-empty" id="notesEmpty" role="status" hidden></p>
             <button class="icon-button icon-button--small tab-scroll" id="scrollTabsRight" type="button" aria-label="Desplazar pestañas a la derecha" aria-controls="notesList" title="Pestañas siguientes" hidden>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              <span class="material-symbols-outlined" aria-hidden="true">arrow_right</span>
             </button>
             <button class="icon-button tab-create" id="createNote" type="button" aria-label="Crear nota nueva">
               <svg class="material-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
               <span class="floating-label" role="tooltip">Crear nota nueva</span>
             </button>
             <button class="icon-button tab-import" id="importTextFile" type="button" aria-label="Importar un archivo TXT como nota nueva">
-              <svg class="material-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8zm-1 1.5L18.5 9H13zM18 20H6V4h6v6h6zm-4.5-5.5V18h-3v-3.5H8l4-4 4 4z"/></svg>
+              <span class="material-symbols-outlined" aria-hidden="true">upload_file</span>
               <span class="floating-label" role="tooltip">Importar archivo TXT</span>
             </button>
             <input id="textFileInput" type="file" accept=".txt,text/plain" hidden />
@@ -188,7 +189,7 @@
             </div>
             <div class="note-actions">
               <button class="icon-button action-icon-button" id="findInNote" type="button" aria-label="Buscar en la nota" title="Buscar en la nota">
-                <svg class="material-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 14 15.5l.27.28v.79l5 4.99L20.49 20l-4.99-5zm-5 0A4.5 4.5 0 1 1 10.5 5a4.5 4.5 0 0 1 0 9z"/></svg>
+                <span class="material-symbols-outlined" aria-hidden="true">search</span>
                 <span class="floating-label" role="tooltip">Buscar en la nota</span>
               </button>
               <button class="icon-button action-icon-button" id="shareNote" type="button" aria-label="Compartir" hidden>
