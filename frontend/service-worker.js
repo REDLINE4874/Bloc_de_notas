@@ -1,4 +1,4 @@
-const CACHE_NAME = "notas-standalone-shell-v10";
+const CACHE_NAME = "notas-standalone-shell-v11";
 const CACHE_PREFIX = "notas-standalone-shell-";
 const APP_SHELL = new URL("./", self.location.href).toString();
 const SHELL_FILES = [
@@ -23,10 +23,10 @@ const SHELL_FILES = [
   new URL("./src/js/app.js", self.location.href).toString(),
   new URL("./src/js/auth/supabase-config.js", self.location.href).toString(),
   new URL("./manifest.webmanifest", self.location.href).toString(),
-  new URL("./assets/icons/logoapp.svg", self.location.href).toString(),
-  new URL("./assets/icons/apple-touch-icon.png", self.location.href).toString(),
-  new URL("./assets/icons/icon-192.png", self.location.href).toString(),
-  new URL("./assets/icons/icon-512.png", self.location.href).toString(),
+  new URL("./assets/icons/logoapp.svg?v=11", self.location.href).toString(),
+  new URL("./assets/icons/apple-touch-icon.png?v=11", self.location.href).toString(),
+  new URL("./assets/icons/icon-192.png?v=11", self.location.href).toString(),
+  new URL("./assets/icons/icon-512.png?v=11", self.location.href).toString(),
 ];
 
 self.addEventListener("install", (event) => {
