@@ -30,6 +30,13 @@
   --notice-surface: #fff1bd;
   --notice-text: #534920;
   --notice-link: #315fb7;
+  --code-comment: #596579;
+  --code-keyword: #75319b;
+  --code-string: #176b39;
+  --code-number: #984600;
+  --code-function: #174c9b;
+  --code-variable: #8a2e49;
+  --code-meta: #00646d;
 }
 
 :root[data-theme="dark"] {
@@ -61,6 +68,13 @@
   --notice-surface: rgb(198 166 90 / 14%);
   --notice-text: #f6d98b;
   --notice-link: #a3e5f0;
+  --code-comment: #b8c3d1;
+  --code-keyword: #e3b4ff;
+  --code-string: #a2e8b4;
+  --code-number: #ffd09c;
+  --code-function: #acccff;
+  --code-variable: #ffb4c7;
+  --code-meta: #a5edf0;
 }
 
 :root[data-theme="dark"] .button--primary { color: #000; }
