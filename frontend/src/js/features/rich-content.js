@@ -376,11 +376,29 @@ function updateSyntaxHighlights() {
   noteContentHighlights.replaceChildren(...Array.from(overlay.childNodes));
   noteContent.classList.toggle("is-syntax-highlighted", highlightedCount > 0);
   noteContentHighlights.hidden = highlightedCount === 0;
-  noteContentHighlights.style.transform = `translate(${-noteContent.scrollLeft}px, ${-noteContent.scrollTop}px)`;
+  syncNoteContentHighlightsViewport();
   updateCodeBlockControls();
   return highlightedCount > 0;
 }
 
-noteContent.addEventListener("scroll", updateCodeBlockControls, { passive: true });
-window.addEventListener("resize", updateCodeBlockControls);
+function syncNoteContentHighlightsViewport() {
+  if (noteContent.clientWidth > 0) {
+    noteContentHighlights.style.insetInlineEnd = "auto";
+    noteContentHighlights.style.width = `${noteContent.clientWidth}px`;
+  }
+  noteContentHighlights.style.transform = `translate(${-noteContent.scrollLeft}px, ${-noteContent.scrollTop}px)`;
+}
+
+noteContent.addEventListener("scroll", () => {
+  syncNoteContentHighlightsViewport();
+  updateCodeBlockControls();
+}, { passive: true });
+new ResizeObserver(() => {
+  syncNoteContentHighlightsViewport();
+  updateCodeBlockControls();
+}).observe(noteContent);
+window.addEventListener("resize", () => {
+  syncNoteContentHighlightsViewport();
+  updateCodeBlockControls();
+});
 
