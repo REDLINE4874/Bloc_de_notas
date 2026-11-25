@@ -4,7 +4,7 @@
   .app-header__user-tools { margin-left: auto; }
   .brand { gap: 7px; font-size: 16px; }
   .brand__icon { width: 29px; height: 29px; border-radius: 9px; font-size: 15px; }
-  .workspace { padding-inline: 18px; }
+  .workspace { padding-inline: 0; }
   .note-tabbar { gap: 8px; }
   .note-tabbar__label { display: none; }
   .note-tab-item { flex-basis: 122px; }
@@ -36,9 +36,9 @@
   .note-tab__close { width: 23px; flex-basis: 23px; opacity: 1; }
   .tab-scroll { width: 28px; height: 30px; flex-basis: 28px; }
   .tab-create { width: 30px; height: 30px; margin-inline: 0 2px; }
-  .tab-import { width: 30px; height: 30px; flex-basis: 30px; margin-right: 0; }
-  .workspace { padding: 8px; }
-  .note-editor { margin: 0; border-radius: 15px; padding: 16px 13px; }
+  .tab-history { width: 28px; height: 30px; }
+  .workspace { padding: 8px 0; }
+  .note-editor { margin: 0; border-radius: 0; padding: 16px 13px; }
   .note-date { font-size: 10px; }
   .note-actions .button { min-height: 32px; padding-inline: 7px; font-size: 10px; }
   .note-content-wrap { margin-top: 12px; }

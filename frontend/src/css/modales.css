@@ -4,35 +4,51 @@
 .confirm-dialog::backdrop { background: rgb(25 31 44 / 45%); backdrop-filter: blur(3px); }
 .format-dialog { width: min(100% - 32px, 480px); border: 0; border-radius: 18px; padding: 22px; background: var(--surface); color: var(--text); box-shadow: 0 20px 70px rgb(20 28 45 / 24%); overscroll-behavior: contain; }
 .format-dialog::backdrop { background: rgb(25 31 44 / 14%); overflow: hidden; overscroll-behavior: contain; }
-.format-dialog h2 { margin: 0 0 16px; font-size: 21px; letter-spacing: -.03em; }
-.format-toolbar { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 7px; overflow: visible; border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: var(--surface); }
-.format-toolbar__group { display: flex; min-width: 0; max-width: 100%; flex: 0 0 auto; flex-wrap: wrap; align-items: center; gap: 5px; }
+.format-dialog h2 { margin: 0 0 5px; font-size: 21px; letter-spacing: -.03em; }
+.format-dialog__intro { margin: 0 0 14px; color: var(--muted-strong); font-size: 12px; line-height: 1.45; }
+.format-toolbar { display: flex; min-width: 0; flex-wrap: wrap; align-items: flex-end; gap: 10px; overflow: visible; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--surface); }
+.format-toolbar__group { display: flex; min-width: 0; max-width: 100%; flex: 0 0 auto; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.format-toolbar__field { display: grid; min-width: 0; gap: 5px; }
+.format-toolbar__field-label { color: var(--muted-strong); font-size: 11px; font-weight: 650; line-height: 1.2; }
 .format-toolbar .share-select { flex: 0 0 auto; }
 .format-toolbar .share-select__trigger { min-height: 34px; border-radius: 5px; padding: 0 7px; background: var(--surface); font-size: 13px; }
 .format-toolbar__family { width: min(220px, 48vw); }
 .format-toolbar__size { width: 72px; }
 .format-toolbar__language { width: min(170px, 44vw); }
-.format-toolbar__code-button { min-width: 62px; padding-inline: 8px; font-size: 13px; }
-.format-toolbar__separator { width: 1px; min-height: 30px; flex: 0 0 1px; border-inline-start: 1px solid var(--line); opacity: 0; }
 .format-toolbar__button { display: grid; min-inline-size: 34px; min-block-size: 34px; place-items: center; border: 1px solid transparent; border-radius: 5px; padding: 0; background: transparent; color: var(--text-soft); font-size: 16px; cursor: pointer; }
 .format-toolbar__button[aria-pressed="true"] { border-color: var(--accent); background: var(--selected); color: var(--text-strong); }
 .format-toolbar__button--italic { font-style: italic; }
 .format-toolbar__button--underline { text-decoration: underline; text-underline-offset: 3px; }
 .format-toolbar :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.format-dialog__caption { margin: 4px 2px 0; color: var(--muted-strong); font-size: 11px; text-align: right; }
+.format-code-options { margin-top: 10px; overflow: visible; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.format-code-options summary { display: flex; min-height: 48px; align-items: center; gap: 10px; padding: 7px 11px; color: var(--text); list-style: none; cursor: pointer; }
+.format-code-options summary::-webkit-details-marker { display: none; }
+.format-code-options summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.format-code-options summary > .material-symbols-outlined { color: var(--accent); font-size: 20px; }
+.format-code-options__summary-copy { display: grid; min-width: 0; flex: 1; gap: 2px; font-size: 12px; font-weight: 650; }
+.format-code-options__summary-hint { color: var(--muted-strong); font-size: 11px; font-weight: 400; }
+.format-code-options__chevron { width: 16px; height: 16px; flex: 0 0 auto; fill: none; stroke: var(--muted-strong); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; transition: transform .16s ease; }
+.format-code-options[open] .format-code-options__chevron { transform: rotate(180deg); }
+.format-code-options__content { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; border-top: 1px solid var(--line); padding: 11px; }
+.format-code-options__field { display: grid; min-width: 0; flex: 1 1 150px; gap: 5px; }
+.format-code-options .share-select__trigger { min-height: 34px; border-radius: 5px; padding: 0 7px; background: var(--surface); font-size: 13px; }
+.format-code-options__apply { min-height: 34px; padding-inline: 10px; font-size: 12px; white-space: nowrap; }
 .format-dialog__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 .format-dialog__actions .button { min-height: 40px; }
 .format-dialog__actions .button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (hover: hover) {
   .format-toolbar__button:hover { background: var(--hover); }
+  .format-code-options summary:hover { background: var(--hover); }
 }
 @media (pointer: coarse) {
   .format-toolbar__button { min-inline-size: 44px; min-block-size: 44px; }
   .format-toolbar .share-select__trigger { min-height: 44px; }
+  .format-code-options summary { min-height: 52px; }
+  .format-code-options .share-select__trigger,.format-code-options__apply { min-height: 44px; }
 }
 @media (forced-colors: active) {
   .format-toolbar__button[aria-pressed="true"] { border-color: Highlight; background: Highlight; color: HighlightText; }
-  .format-toolbar :focus-visible { outline-color: Highlight; }
+  .format-toolbar :focus-visible,.format-code-options summary:focus-visible { outline-color: Highlight; }
   .note-tab-item.is-active.is-shared-with-me { border-bottom-color: LinkText; }
 }
 .confirm-dialog h2 { margin: 0; font-size: 21px; letter-spacing: -.03em; }
@@ -73,6 +89,5 @@
 .share-select__empty { padding: 10px; color: var(--muted); font-size: 12px; }
 .format-toolbar .share-select.format-toolbar__family { width: min(220px, 48vw); }
 .format-toolbar .share-select.format-toolbar__size { width: 72px; }
-.format-toolbar .share-select.format-toolbar__language { width: min(170px, 44vw); }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 13px; }
 

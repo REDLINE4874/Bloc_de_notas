@@ -57,7 +57,17 @@ if (!supabaseReady) {
 
   document.getElementById("createNote").addEventListener("click", () => createNote());
   document.getElementById("emptyCreateNote").addEventListener("click", () => createNote());
-  importTextFile.addEventListener("click", () => textFileInput.click());
+  [undoNote, redoNote].forEach((button) => {
+    button.addEventListener("pointerdown", (event) => event.preventDefault());
+  });
+  undoNote.addEventListener("click", () => runNoteHistoryCommand("undo", undoNote));
+  redoNote.addEventListener("click", () => runNoteHistoryCommand("redo", redoNote));
+  importTextFile.addEventListener("click", () => {
+    settingsMenu.hidden = true;
+    settingsButton.setAttribute("aria-expanded", "false");
+    settingsButton.focus();
+    textFileInput.click();
+  });
   textFileInput.addEventListener("change", async () => {
     const [file] = textFileInput.files || [];
     textFileInput.value = "";
@@ -75,6 +85,19 @@ if (!supabaseReady) {
   document.getElementById("discardDraft").addEventListener("click", discardDraft);
   document.getElementById("cancelShare").addEventListener("click", () => shareDialog.close());
   noteTitle.addEventListener("input", scheduleNoteSave);
+  noteTitle.addEventListener("focus", () => {
+    lastEditorInput = noteTitle;
+  });
+  noteTitle.addEventListener("blur", () => {
+    savedTitleSelection = {
+      start: noteTitle.selectionStart,
+      end: noteTitle.selectionEnd,
+      direction: noteTitle.selectionDirection,
+    };
+  });
+  noteContent.addEventListener("focus", () => {
+    lastEditorInput = noteContent;
+  });
   noteContent.addEventListener("keydown", (event) => {
     if (event.key !== "Tab" || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
     event.preventDefault();
@@ -105,19 +128,9 @@ if (!supabaseReady) {
   noteContent.addEventListener("paste", (event) => {
     event.preventDefault();
     const pastedText = event.clipboardData?.getData("text/plain") || "";
-    const selection = window.getSelection();
     const range = getEditorSelectionRange();
     if (!range) return;
-    const availableLength = Math.max(0, NOTE_MAX_LENGTH - readNoteContentText().length + range.toString().length);
-    const text = pastedText.slice(0, availableLength);
-    range.deleteContents();
-    const pastedNode = document.createTextNode(text);
-    range.insertNode(pastedNode);
-    range.setStartAfter(pastedNode);
-    range.collapse(true);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    noteContent.dispatchEvent(new Event("input", { bubbles: true }));
+    insertPlainTextAtEditorRange(range, pastedText);
   });
   noteContent.addEventListener("copy", (event) => {
     const selection = window.getSelection();
@@ -129,10 +142,7 @@ if (!supabaseReady) {
       || (commonAncestor instanceof Node && noteContent.contains(commonAncestor));
     if (!selectedWithinEditor) return;
 
-    const copiedFragment = range.cloneContents();
-    const copiedRoot = document.createElement("div");
-    copiedRoot.append(copiedFragment);
-    const copiedText = getPlainTextFromRichContent(copiedRoot);
+    const copiedText = getPlainTextFromEditorRange(range);
     if (!copiedText) return;
 
     event.preventDefault();
@@ -256,8 +266,14 @@ if (!supabaseReady) {
     });
   });
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") flushNoteSave();
-    else if (currentUser) loadNotes();
+    if (document.visibilityState === "hidden") {
+      void flushNoteSave();
+    } else if (currentUser) {
+      void (async () => {
+        await flushNoteSave();
+        await loadNotes();
+      })();
+    }
   });
 
   client.auth.onAuthStateChange((event, session) => {

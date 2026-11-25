@@ -55,9 +55,15 @@ function sanitizeNoteContent(html) {
 }
 
 function setNoteContent(content) {
-  savedEditorSelection = null;
   const storedContent = String(content ?? "");
-  if (storedContent.startsWith(NOTE_CONTENT_PREFIX)) {
+  const isRichContent = storedContent.startsWith(NOTE_CONTENT_PREFIX);
+  const currentContent = isRichContent
+    ? `${NOTE_CONTENT_PREFIX}${sanitizeNoteContent(noteContent.innerHTML)}`
+    : noteContent.textContent;
+  if (currentContent === storedContent) return;
+
+  savedEditorSelection = null;
+  if (isRichContent) {
     noteContent.innerHTML = sanitizeNoteContent(storedContent.slice(NOTE_CONTENT_PREFIX.length));
   } else {
     noteContent.textContent = storedContent;

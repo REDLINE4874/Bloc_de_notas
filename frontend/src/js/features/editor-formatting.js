@@ -1,4 +1,14 @@
 var pendingCodeLanguageSelection = false;
+const noteContextMenuAnchor = document.getElementById("noteContextMenuAnchor");
+const noteContextMenu = document.getElementById("noteContextMenu");
+const noteContextMenuItems = document.getElementById("noteContextMenuItems");
+const cutSelectedText = document.getElementById("cutSelectedText");
+const copySelectedText = document.getElementById("copySelectedText");
+const pasteIntoNote = document.getElementById("pasteIntoNote");
+const formatSelectedText = document.getElementById("formatSelectedText");
+const noteContextMenuButtons = Array.from(noteContextMenuItems.querySelectorAll("button"));
+let contextMenuRange = null;
+let contextMenuPointer = null;
 
 function getEditorSelectionRange() {
   const selection = window.getSelection();
@@ -7,6 +17,46 @@ function getEditorSelectionRange() {
   return noteContent.contains(range.startContainer) && noteContent.contains(range.endContainer)
     ? range.cloneRange()
     : null;
+}
+
+function getPlainTextFromEditorRange(range) {
+  return getPlainTextFromRichContent(range.cloneContents());
+}
+
+function insertPlainTextAtEditorRange(range, pastedText) {
+  if (!range
+    || !noteContent.contains(range.startContainer)
+    || !noteContent.contains(range.endContainer)) return false;
+  const selection = window.getSelection();
+  if (!selection) return false;
+  const availableLength = Math.max(0, NOTE_MAX_LENGTH - readNoteContentText().length + range.toString().length);
+  const text = pastedText.slice(0, availableLength);
+  range.deleteContents();
+  const pastedNode = document.createTextNode(text);
+  range.insertNode(pastedNode);
+  range.setStartAfter(pastedNode);
+  range.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  saveEditorSelection();
+  noteContent.dispatchEvent(new Event("input", { bubbles: true }));
+  return true;
+}
+
+function getEditorRangeAtPoint(x, y) {
+  const position = document.caretPositionFromPoint?.(x, y);
+  if (position && noteContent.contains(position.offsetNode)) {
+    const range = document.createRange();
+    range.setStart(position.offsetNode, position.offset);
+    range.collapse(true);
+    return range;
+  }
+  const pointRange = document.caretRangeFromPoint?.(x, y);
+  if (pointRange && noteContent.contains(pointRange.startContainer)) return pointRange;
+  const endRange = document.createRange();
+  endRange.selectNodeContents(noteContent);
+  endRange.collapse(false);
+  return endRange;
 }
 
 function insertShortDateTime() {
@@ -365,6 +415,245 @@ function openFormatDialog() {
   fontSizeDialog.showModal();
   updateFormatToolbarState();
   document.getElementById("fontSizeSelectButton").focus();
+}
+
+function canEditCurrentNoteContent() {
+  return noteContent.getAttribute("contenteditable") === "true"
+    && fontSizeOption.getAttribute("aria-disabled") !== "true";
+}
+
+function focusNoteContextMenuButton(button) {
+  if (!("focusGroup" in HTMLElement.prototype)) {
+    noteContextMenuButtons.forEach((item) => {
+      item.tabIndex = item === button ? 0 : -1;
+    });
+  }
+  button.focus();
+}
+
+function closeNoteContextMenu(range = null) {
+  if (noteContextMenu.matches(":popover-open")) noteContextMenu.hidePopover();
+  contextMenuRange = null;
+  if (!range
+    || !canEditCurrentNoteContent()
+    || !noteContent.contains(range.startContainer)
+    || !noteContent.contains(range.endContainer)) return;
+  restoreEditorSelection(range);
+  saveEditorSelection();
+}
+
+async function copyContextText() {
+  const range = contextMenuRange?.cloneRange();
+  if (!range || range.collapsed) return;
+  const text = getPlainTextFromEditorRange(range);
+  if (!text) return;
+
+  let writePromise;
+  try {
+    writePromise = navigator.clipboard.writeText(text);
+  } catch (error) {
+    closeNoteContextMenu(range);
+    setGlobalStatus(`No se pudo copiar el texto: ${error.message}`, true);
+    return;
+  }
+  closeNoteContextMenu(range);
+  try {
+    await writePromise;
+    setGlobalStatus("Texto copiado al portapapeles.");
+  } catch (error) {
+    setGlobalStatus(`No se pudo copiar el texto: ${error.message}`, true);
+  }
+}
+
+async function cutContextText() {
+  const range = contextMenuRange?.cloneRange();
+  if (!range || range.collapsed || !canEditCurrentNoteContent()) return;
+  const text = getPlainTextFromEditorRange(range);
+  if (!text) return;
+  const noteId = activeNoteId;
+
+  let writePromise;
+  try {
+    writePromise = navigator.clipboard.writeText(text);
+  } catch (error) {
+    closeNoteContextMenu(range);
+    setGlobalStatus(`No se pudo cortar el texto: ${error.message}`, true);
+    return;
+  }
+  closeNoteContextMenu(range);
+  try {
+    await writePromise;
+  } catch (error) {
+    setGlobalStatus(`No se pudo cortar el texto: ${error.message}`, true);
+    return;
+  }
+
+  if (activeNoteId !== noteId
+    || !canEditCurrentNoteContent()
+    || !noteContent.contains(range.startContainer)
+    || !noteContent.contains(range.endContainer)) {
+    setGlobalStatus("El texto se copió, pero no se cortó porque cambió la nota activa.", true);
+    return;
+  }
+  if (getPlainTextFromEditorRange(range) !== text) {
+    setGlobalStatus("El texto se copió, pero no se cortó porque la selección cambió.", true);
+    return;
+  }
+  if (insertPlainTextAtEditorRange(range, "")) setGlobalStatus("Texto cortado al portapapeles.");
+}
+
+async function pasteContextText() {
+  const range = contextMenuRange?.cloneRange();
+  if (!range || !canEditCurrentNoteContent()) return;
+  const noteId = activeNoteId;
+
+  let readPromise;
+  try {
+    readPromise = navigator.clipboard.readText();
+  } catch (error) {
+    closeNoteContextMenu(range);
+    setGlobalStatus(`No se pudo leer el portapapeles: ${error.message}`, true);
+    return;
+  }
+  closeNoteContextMenu(range);
+  try {
+    const text = await readPromise;
+    if (!text) {
+      setGlobalStatus("El portapapeles no contiene texto para pegar.");
+      return;
+    }
+    if (activeNoteId !== noteId
+      || !canEditCurrentNoteContent()
+      || !noteContent.contains(range.startContainer)
+      || !noteContent.contains(range.endContainer)) {
+      setGlobalStatus("No se pegó el texto porque cambió la nota activa o sus permisos.", true);
+      return;
+    }
+    restoreEditorSelection(range);
+    insertPlainTextAtEditorRange(range, text);
+  } catch (error) {
+    setGlobalStatus(`No se pudo leer el portapapeles: ${error.message}`, true);
+  }
+}
+
+function openSelectedTextContextMenu(event) {
+  const pointer = contextMenuPointer;
+  contextMenuPointer = null;
+  const selectionRange = getEditorSelectionRange();
+  const selectedRange = selectionRange && !selectionRange.collapsed
+    && getPlainTextFromEditorRange(selectionRange)
+    ? selectionRange.cloneRange()
+    : null;
+  if (!canEditCurrentNoteContent() || fontSizeDialog.open) return;
+
+  const pointerIsRecent = pointer
+    && performance.now() - pointer.time < 1000
+    && (event.button === 2 || event.ctrlKey);
+  const eventHasPoint = event.clientX !== 0 || event.clientY !== 0;
+  const selectionRect = selectionRange?.getBoundingClientRect();
+  const x = pointerIsRecent ? pointer.x : eventHasPoint ? event.clientX : selectionRect?.left || 0;
+  const y = pointerIsRecent ? pointer.y : eventHasPoint ? event.clientY : selectionRect?.bottom || 0;
+  const range = selectedRange || (!pointerIsRecent && !eventHasPoint && selectionRange
+    ? selectionRange.cloneRange()
+    : getEditorRangeAtPoint(x, y));
+  if (!range) return;
+
+  event.preventDefault();
+  contextMenuRange = range.cloneRange();
+  savedEditorSelection = contextMenuRange.cloneRange();
+  cutSelectedText.disabled = !selectedRange;
+  copySelectedText.disabled = !selectedRange;
+  formatSelectedText.disabled = !selectedRange;
+
+  noteContextMenuAnchor.style.left = `${x}px`;
+  noteContextMenuAnchor.style.top = `${y}px`;
+
+  const canAnchorToPopoverSource = CSS.supports("position-area: block-end")
+    && typeof ToggleEvent !== "undefined"
+    && "source" in ToggleEvent.prototype;
+  noteContextMenu.toggleAttribute("data-anchor-positioned", canAnchorToPopoverSource);
+  noteContextMenu.style.removeProperty("left");
+  noteContextMenu.style.removeProperty("top");
+  if (!noteContextMenu.matches(":popover-open")) {
+    if (canAnchorToPopoverSource) noteContextMenu.showPopover({ source: noteContextMenuAnchor });
+    else noteContextMenu.showPopover();
+  }
+  if (!canAnchorToPopoverSource) {
+    const menuRect = noteContextMenu.getBoundingClientRect();
+    const left = Math.max(8, Math.min(x, window.innerWidth - menuRect.width - 8));
+    const top = Math.max(8, Math.min(y, window.innerHeight - menuRect.height - 8));
+    noteContextMenu.style.left = `${left}px`;
+    noteContextMenu.style.top = `${top}px`;
+  }
+  const firstEnabledButton = noteContextMenuButtons.find((button) => !button.disabled);
+  if (firstEnabledButton) focusNoteContextMenuButton(firstEnabledButton);
+}
+
+noteContent.addEventListener("pointerup", (event) => {
+  contextMenuPointer = event.button === 2 || event.ctrlKey
+    ? { x: event.clientX, y: event.clientY, time: performance.now() }
+    : null;
+});
+noteContent.addEventListener("contextmenu", openSelectedTextContextMenu);
+cutSelectedText.addEventListener("click", cutContextText);
+copySelectedText.addEventListener("click", copyContextText);
+pasteIntoNote.addEventListener("click", pasteContextText);
+formatSelectedText.addEventListener("click", () => {
+  const range = contextMenuRange?.cloneRange();
+  closeNoteContextMenu(range);
+  if (!range
+    || !noteContent.contains(range.startContainer)
+    || !noteContent.contains(range.endContainer)) return;
+  openFormatDialog();
+});
+noteContextMenuItems.addEventListener("pointermove", (event) => {
+  if (event.pointerType === "touch") return;
+  const button = event.target instanceof Element
+    ? event.target.closest("button:not(:disabled)")
+    : null;
+  if (button && noteContextMenuItems.contains(button)) focusNoteContextMenuButton(button);
+});
+noteContextMenu.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  event.preventDefault();
+  event.stopPropagation();
+  closeNoteContextMenu(contextMenuRange?.cloneRange());
+});
+noteContextMenu.addEventListener("toggle", (event) => {
+  if (event.newState === "closed" && !noteContextMenu.matches(":popover-open")) {
+    contextMenuRange = null;
+  }
+});
+noteContextMenuItems.addEventListener("keydown", (event) => {
+  if (event.key === "Tab") {
+    window.setTimeout(() => {
+      if (!noteContextMenuItems.contains(document.activeElement)
+        && noteContextMenu.matches(":popover-open")) closeNoteContextMenu();
+    });
+    return;
+  }
+  const hasNativeFocusGroup = "focusGroup" in HTMLElement.prototype;
+  if (hasNativeFocusGroup && !["Home", "End"].includes(event.key)) return;
+  if (!hasNativeFocusGroup && !["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+  const enabledButtons = noteContextMenuButtons.filter((button) => !button.disabled);
+  const currentIndex = enabledButtons.indexOf(document.activeElement);
+  if (currentIndex < 0) return;
+  let nextIndex;
+  if (event.key === "ArrowDown") nextIndex = (currentIndex + 1) % enabledButtons.length;
+  else if (event.key === "ArrowUp") nextIndex = (currentIndex - 1 + enabledButtons.length) % enabledButtons.length;
+  else if (event.key === "Home") nextIndex = 0;
+  else if (event.key === "End") nextIndex = enabledButtons.length - 1;
+  else return;
+  event.preventDefault();
+  focusNoteContextMenuButton(enabledButtons[nextIndex]);
+});
+
+if (!("focusGroup" in HTMLElement.prototype)) {
+  noteContextMenuItems.setAttribute("role", "menu");
+  noteContextMenuButtons.forEach((button) => {
+    button.setAttribute("role", "menuitem");
+    button.tabIndex = -1;
+  });
 }
 
 fontSizeOption.addEventListener("click", openFormatDialog);

@@ -22,6 +22,9 @@ function getNoteSharingStatus(note) {
 
 function renderEditor() {
   const note = currentNote();
+  const editable = Boolean(note && canEditNote(note));
+  undoNote.disabled = !editable;
+  redoNote.disabled = !editable;
   if (note) markSharedNoteAsRead(note);
   fontSizeOption.setAttribute("aria-disabled", String(!note || !canEditNote(note)));
   emptyState.hidden = Boolean(note);
@@ -38,7 +41,6 @@ function renderEditor() {
     return;
   }
 
-  const editable = canEditNote(note);
   const owned = isNoteOwner(note);
   noteTitle.value = note.title || "";
   setNoteContent(note.content || "");
@@ -69,6 +71,31 @@ function renderEditor() {
   );
   noteFindCurrent = 0;
   updateNoteFindHighlights();
+}
+
+function runNoteHistoryCommand(command, button) {
+  const note = currentNote();
+  if (!note || !canEditNote(note) || activeSection !== "editor") return;
+
+  const focusedElement = document.activeElement;
+  const editTarget = focusedElement === noteTitle || focusedElement === noteContent
+    ? focusedElement
+    : lastEditorInput;
+  if (editTarget === noteTitle && noteTitle.disabled) return;
+  if (editTarget === noteContent && noteContent.getAttribute("contenteditable") !== "true") return;
+
+  const returnFocusToButton = focusedElement === button;
+  editTarget.focus();
+  if (editTarget === noteContent) restoreEditorSelection();
+  else if (savedTitleSelection) {
+    noteTitle.setSelectionRange(
+      savedTitleSelection.start,
+      savedTitleSelection.end,
+      savedTitleSelection.direction,
+    );
+  }
+  document.execCommand(command);
+  if (returnFocusToButton) button.focus();
 }
 
 function updateListPreview(noteId, title, content, updatedAt) {

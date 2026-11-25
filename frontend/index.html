@@ -102,8 +102,12 @@
                     <span>Formato</span>
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                   </button>
+                  <button class="settings-menu__option" id="importTextFile" type="button">
+                    <span>Importar archivo TXT</span>
+                  </button>
                 </div>
               </div>
+              <input id="textFileInput" type="file" accept=".txt,text/plain" hidden />
             </div>
             <button class="button button--quiet install-button" id="installApp" type="button" hidden>Instalar app</button>
           </div>
@@ -134,20 +138,25 @@
             <button class="icon-button icon-button--small tab-scroll" id="scrollTabsLeft" type="button" aria-label="Desplazar pestañas a la izquierda" aria-controls="notesList" title="Pestañas anteriores" hidden>
               <span class="material-symbols-outlined" aria-hidden="true">arrow_left</span>
             </button>
-            <nav class="notes-list" id="notesList" role="tablist" aria-label="Pestañas de notas"></nav>
             <p class="tabs-empty" id="notesEmpty" role="status" hidden></p>
-            <button class="icon-button icon-button--small tab-scroll" id="scrollTabsRight" type="button" aria-label="Desplazar pestañas a la derecha" aria-controls="notesList" title="Pestañas siguientes" hidden>
-              <span class="material-symbols-outlined" aria-hidden="true">arrow_right</span>
-            </button>
+            <nav class="notes-list" id="notesList" role="tablist" aria-label="Pestañas de notas"></nav>
             <button class="icon-button tab-create" id="createNote" type="button" aria-label="Crear nota nueva">
               <svg class="material-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
               <span class="floating-label" role="tooltip">Crear nota nueva</span>
             </button>
-            <button class="icon-button tab-import" id="importTextFile" type="button" aria-label="Importar un archivo TXT como nota nueva">
-              <span class="material-symbols-outlined" aria-hidden="true">upload_file</span>
-              <span class="floating-label" role="tooltip">Importar archivo TXT</span>
+            <button class="icon-button icon-button--small tab-scroll" id="scrollTabsRight" type="button" aria-label="Desplazar pestañas a la derecha" aria-controls="notesList" title="Pestañas siguientes" hidden>
+              <span class="material-symbols-outlined" aria-hidden="true">arrow_right</span>
             </button>
-            <input id="textFileInput" type="file" accept=".txt,text/plain" hidden />
+            <div class="tab-history-controls" role="group" aria-label="Historial de edición">
+              <button class="icon-button tab-history" id="undoNote" type="button" aria-label="Deshacer" disabled>
+                <span class="material-symbols-outlined" aria-hidden="true">undo</span>
+                <span class="floating-label" role="tooltip">Deshacer</span>
+              </button>
+              <button class="icon-button tab-history" id="redoNote" type="button" aria-label="Rehacer" disabled>
+                <span class="material-symbols-outlined" aria-hidden="true">redo</span>
+                <span class="floating-label" role="tooltip">Rehacer</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -206,6 +215,16 @@
           <div class="note-content-wrap" id="noteContentWrap">
             <div class="note-content-highlights" id="noteContentHighlights" aria-hidden="true" hidden></div>
             <div class="note-content" id="noteContent" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Empieza a escribir..." aria-label="Contenido de la nota" lang="es" spellcheck="true"></div>
+            <span class="note-context-menu-anchor" id="noteContextMenuAnchor" aria-hidden="true"></span>
+            <div class="note-context-menu" id="noteContextMenu" popover="auto">
+              <div class="note-context-menu__items" id="noteContextMenuItems" focusgroup="menu nomemory" aria-label="Acciones de edición">
+                <button class="note-context-menu__action" id="cutSelectedText" type="button">Cortar</button>
+                <button class="note-context-menu__action" id="copySelectedText" type="button">Copiar</button>
+                <button class="note-context-menu__action" id="pasteIntoNote" type="button">Pegar</button>
+                <hr />
+                <button class="note-context-menu__action" id="formatSelectedText" type="button" aria-controls="fontSizeDialog">Formato</button>
+              </div>
+            </div>
             <div class="code-block-actions" id="codeBlockActions"></div>
           </div>
           <details class="sharing-section" id="sharingSection" hidden>
@@ -273,50 +292,67 @@
       </div>
     </dialog>
 
-    <dialog class="format-dialog" id="fontSizeDialog" aria-labelledby="fontSizeDialogTitle">
-      <h2 id="fontSizeDialogTitle">Formato</h2>
+    <dialog class="format-dialog" id="fontSizeDialog" aria-labelledby="fontSizeDialogTitle" aria-describedby="formatDialogDescription">
+      <h2 id="fontSizeDialogTitle">Formato de texto</h2>
+      <p class="format-dialog__intro" id="formatDialogDescription">Elige la fuente, el tamaño y el estilo del texto de tu nota.</p>
       <div class="format-toolbar" id="formatToolbar" role="toolbar" focusgroup="toolbar wrap" aria-label="Formato de texto" aria-controls="noteContent">
         <div class="format-toolbar__group" role="group" aria-label="Fuente y tamaño">
-          <div class="share-select format-toolbar__family" data-share-select="fontFamilySelect">
-            <input id="fontFamilySelect" type="hidden" value="Inter, 'Segoe UI', system-ui, sans-serif" />
-            <label class="sr-only" id="fontFamilySelectLabel" for="fontFamilySelectButton">Fuente</label>
-            <button class="share-select__trigger" id="fontFamilySelectButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="fontFamilySelectOptions" aria-labelledby="fontFamilySelectLabel fontFamilySelectValue">
-              <span id="fontFamilySelectValue"></span>
-              <svg class="share-select__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-            </button>
-            <div class="share-select__options" id="fontFamilySelectOptions" role="listbox" aria-labelledby="fontFamilySelectLabel" hidden></div>
+          <div class="format-toolbar__field">
+            <label class="format-toolbar__field-label" id="fontFamilySelectLabel" for="fontFamilySelectButton">Fuente</label>
+            <div class="share-select format-toolbar__family" data-share-select="fontFamilySelect">
+              <input id="fontFamilySelect" type="hidden" value="Inter, 'Segoe UI', system-ui, sans-serif" />
+              <button class="share-select__trigger" id="fontFamilySelectButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="fontFamilySelectOptions" aria-labelledby="fontFamilySelectLabel fontFamilySelectValue">
+                <span id="fontFamilySelectValue"></span>
+                <svg class="share-select__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+              </button>
+              <div class="share-select__options" id="fontFamilySelectOptions" role="listbox" aria-labelledby="fontFamilySelectLabel" hidden></div>
+            </div>
           </div>
-          <div class="share-select format-toolbar__size" data-share-select="fontSizeSelect">
-            <input id="fontSizeSelect" type="hidden" value="16px" />
-            <label class="sr-only" id="fontSizeSelectLabel" for="fontSizeSelectButton">Tamaño de fuente</label>
-            <button class="share-select__trigger" id="fontSizeSelectButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="fontSizeSelectOptions" aria-labelledby="fontSizeSelectLabel fontSizeSelectValue">
-              <span id="fontSizeSelectValue"></span>
-              <svg class="share-select__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-            </button>
-            <div class="share-select__options" id="fontSizeSelectOptions" role="listbox" aria-labelledby="fontSizeSelectLabel" hidden></div>
+          <div class="format-toolbar__field">
+            <label class="format-toolbar__field-label" id="fontSizeSelectLabel" for="fontSizeSelectButton">Tamaño</label>
+            <div class="share-select format-toolbar__size" data-share-select="fontSizeSelect">
+              <input id="fontSizeSelect" type="hidden" value="16px" />
+              <button class="share-select__trigger" id="fontSizeSelectButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="fontSizeSelectOptions" aria-labelledby="fontSizeSelectLabel fontSizeSelectValue">
+                <span id="fontSizeSelectValue"></span>
+                <svg class="share-select__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+              </button>
+              <div class="share-select__options" id="fontSizeSelectOptions" role="listbox" aria-labelledby="fontSizeSelectLabel" hidden></div>
+            </div>
           </div>
         </div>
-        <span class="format-toolbar__separator" role="separator" aria-orientation="vertical"></span>
-        <div class="format-toolbar__group" role="group" aria-label="Estilo">
-          <button class="format-toolbar__button" type="button" data-format-command="bold" aria-label="Negrita" aria-pressed="false" title="Negrita"><strong>N</strong></button>
-          <button class="format-toolbar__button format-toolbar__button--italic" type="button" data-format-command="italic" aria-label="Cursiva" aria-pressed="false" title="Cursiva">K</button>
-          <button class="format-toolbar__button format-toolbar__button--underline" type="button" data-format-command="underline" aria-label="Subrayado" aria-pressed="false" title="Subrayado">S</button>
-        </div>
-        <span class="format-toolbar__separator" role="separator" aria-orientation="vertical"></span>
-        <div class="format-toolbar__group" role="group" aria-label="Código">
-          <div class="share-select format-toolbar__language" data-share-select="codeLanguageSelect">
-            <input id="codeLanguageSelect" type="hidden" value="auto" />
-            <label class="sr-only" id="codeLanguageSelectLabel" for="codeLanguageSelectButton">Lenguaje del bloque de código</label>
-            <button class="share-select__trigger" id="codeLanguageSelectButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="codeLanguageSelectOptions" aria-labelledby="codeLanguageSelectLabel codeLanguageSelectValue">
-              <span id="codeLanguageSelectValue"></span>
-              <svg class="share-select__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-            </button>
-            <div class="share-select__options" id="codeLanguageSelectOptions" role="listbox" aria-labelledby="codeLanguageSelectLabel" hidden></div>
+        <div class="format-toolbar__field">
+          <span class="format-toolbar__field-label">Estilo</span>
+          <div class="format-toolbar__group" role="group" aria-label="Estilo">
+            <button class="format-toolbar__button" type="button" data-format-command="bold" aria-label="Negrita" aria-pressed="false" title="Negrita"><strong>N</strong></button>
+            <button class="format-toolbar__button format-toolbar__button--italic" type="button" data-format-command="italic" aria-label="Cursiva" aria-pressed="false" title="Cursiva">C</button>
+            <button class="format-toolbar__button format-toolbar__button--underline" type="button" data-format-command="underline" aria-label="Subrayado" aria-pressed="false" title="Subrayado">S</button>
           </div>
-          <button class="format-toolbar__button format-toolbar__code-button" id="applyCodeFormat" type="button">Código</button>
         </div>
       </div>
-      <p class="format-dialog__caption">Estilo visual y código</p>
+      <details class="format-code-options">
+        <summary>
+          <span class="material-symbols-outlined" aria-hidden="true">code</span>
+          <span class="format-code-options__summary-copy">
+            <span>Opciones de código</span>
+            <span class="format-code-options__summary-hint">Lenguaje y formato de código</span>
+          </span>
+          <svg class="format-code-options__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+        </summary>
+        <div class="format-code-options__content">
+          <div class="format-code-options__field">
+            <label class="format-toolbar__field-label" id="codeLanguageSelectLabel" for="codeLanguageSelectButton">Lenguaje</label>
+            <div class="share-select format-toolbar__language" data-share-select="codeLanguageSelect">
+              <input id="codeLanguageSelect" type="hidden" value="auto" />
+              <button class="share-select__trigger" id="codeLanguageSelectButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="codeLanguageSelectOptions" aria-labelledby="codeLanguageSelectLabel codeLanguageSelectValue">
+                <span id="codeLanguageSelectValue"></span>
+                <svg class="share-select__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+              </button>
+              <div class="share-select__options" id="codeLanguageSelectOptions" role="listbox" aria-labelledby="codeLanguageSelectLabel" hidden></div>
+            </div>
+          </div>
+          <button class="button button--quiet format-code-options__apply" id="applyCodeFormat" type="button">Aplicar formato de código</button>
+        </div>
+      </details>
       <div class="format-dialog__actions">
         <button class="button button--quiet" id="cancelFontSize" type="button">Cancelar</button>
         <button class="button button--primary" id="confirmFontSize" type="button">Aplicar</button>
