@@ -25,9 +25,10 @@ function sanitizeNoteContent(html) {
       const fontFamily = node.tagName === "SPAN" ? node.style.fontFamily : "";
       const fontSize = node.tagName === "SPAN" ? node.style.fontSize : "";
       const isPlainText = node.tagName === "SPAN" && node.getAttribute("data-language") === "plain";
+      const storedLanguage = node.getAttribute("data-language");
       const codeLanguage = ["CODE", "PRE"].includes(node.tagName)
-        && (CODE_LANGUAGE_IDS.includes(node.getAttribute("data-language")) || node.getAttribute("data-language") === "auto")
-        ? node.getAttribute("data-language")
+        && (CODE_LANGUAGE_IDS.includes(storedLanguage) || ["auto", "plaintext"].includes(storedLanguage))
+        ? (storedLanguage === "auto" ? "plaintext" : storedLanguage)
         : "";
       Array.from(node.attributes).forEach((attribute) => node.removeAttribute(attribute.name));
       if (isPlainText) node.dataset.language = "plain";
@@ -147,13 +148,9 @@ function serializeNoteContent() {
   return `${NOTE_CONTENT_PREFIX}${sanitizeNoteContent(noteContent.innerHTML)}`;
 }
 
-function getHighlightedFragment(source, language, requireConfidence = false) {
-  if (!window.hljs || !source) return null;
-  const result = language === "auto"
-    ? window.hljs.highlightAuto(source, CODE_LANGUAGE_IDS)
-    : window.hljs.highlight(source, { language });
-  if (requireConfidence
-    && (!CODE_LANGUAGE_IDS.includes(result.language) || result.relevance < 2)) return null;
+function getHighlightedFragment(source, language) {
+  if (!window.hljs || !source || language === "plaintext") return null;
+  const result = window.hljs.highlight(source, { language });
 
   const template = document.createElement("template");
   template.innerHTML = result.value;
@@ -177,46 +174,7 @@ function getHighlightedFragment(source, language, requireConfidence = false) {
     node.childNodes.forEach((child) => appendSafeNode(child, parent));
   };
   template.content.childNodes.forEach((node) => appendSafeNode(node, fragment));
-  return { fragment, language: result.language };
-}
-
-function getImmediateCodeLanguage(text) {
-  const immediateLanguages = [
-    { language: "typescript", pattern: /^\s*(?:interface|type)\b/ },
-    { language: "javascript", pattern: /^\s*(?:const|let|var|function|return|import|export|async|await|class|if|for|while)\b/ },
-    { language: "python", pattern: /^\s*(?:def|from|print|elif|self)\b/ },
-    { language: "sql", pattern: /^\s*(?:select|insert|update|delete|create|where)\b/i },
-    { language: "bash", pattern: /^\s*(?:echo|cd|sudo|npm|node|git)\b/ },
-    { language: "xml", pattern: /^\s*<\/?[a-z][^>]*>/i },
-  ];
-  return immediateLanguages.find(({ pattern }) => pattern.test(text))?.language || "";
-}
-
-function isLikelyCode(text) {
-  if (getImmediateCodeLanguage(text)) return true;
-  if ((text.match(/<\/?[a-z][^>]*>/gi) || []).length >= 2) return true;
-  const signals = [
-    /(?:=>|->|===?|!==?|&&|\|\||\+\+|:=)/,
-    /[{}[\];]/,
-    /\b(?:const|let|var|function|return|import|from|def|class|if|for|while|select|from|where|print|console)\b/i,
-    /<\/?[a-z][^>]*>/i,
-  ];
-  return signals.filter((signal) => signal.test(text)).length >= 2;
-}
-
-function highlightAutomaticTextNode(node) {
-  const text = node.nodeType === Node.TEXT_NODE
-    ? node.textContent
-    : getPlainTextFromRichContent(node);
-  if (!text || text.length > NOTE_MAX_LENGTH || !isLikelyCode(text)) return false;
-  const immediateLanguage = getImmediateCodeLanguage(text);
-  const highlighted = immediateLanguage
-    ? getHighlightedFragment(text, immediateLanguage)
-    : getHighlightedFragment(text, "auto", true);
-  if (!highlighted) return false;
-  if (node.nodeType === Node.TEXT_NODE) node.replaceWith(highlighted.fragment);
-  else node.replaceChildren(highlighted.fragment);
-  return true;
+  return fragment;
 }
 
 var codeBlockIdCounter = 0;
@@ -229,7 +187,18 @@ function updateCodeBlockControls() {
     codeBlockActions.replaceChildren();
     codeBlocks.forEach((code) => {
       const control = document.createElement("div");
-      control.className = "code-block-copy-control";
+      control.className = "code-block-control";
+      const languageSelect = document.createElement("select");
+      languageSelect.className = "code-block-language-select";
+      languageSelect.setAttribute("aria-label", "Lenguaje del bloque de código");
+      CODE_LANGUAGE_OPTIONS.forEach(({ value, label }) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        languageSelect.append(option);
+      });
+      const actions = document.createElement("div");
+      actions.className = "code-block-control__actions";
       const button = document.createElement("button");
       button.type = "button";
       button.className = "code-block-copy-button";
@@ -265,20 +234,27 @@ function updateCodeBlockControls() {
       plainButton.className = "code-block-plain-button";
       plainButton.textContent = "Texto normal";
       plainButton.setAttribute("aria-label", "Texto normal: regresar el bloque de código");
-      control.append(button, status, plainButton);
+      actions.append(button, status, plainButton);
+      control.append(languageSelect, actions);
       codeBlockActions.append(control);
     });
   }
 
   const wrapRect = noteContentWrap.getBoundingClientRect();
-  const highlightedCode = Array.from(noteContentHighlights.querySelectorAll("pre > code[data-language]"));
   Array.from(codeBlockActions.children).forEach((control, index) => {
     const code = codeBlocks[index];
     if (!code.id) code.id = `noteCodeBlock-${++codeBlockIdCounter}`;
+    const languageSelect = control.querySelector(".code-block-language-select");
+    languageSelect.dataset.codeLanguageTarget = code.id;
+    languageSelect.value = CODE_LANGUAGE_OPTIONS.some(({ value }) => value === code.dataset.language)
+      ? code.dataset.language
+      : "plaintext";
+    languageSelect.disabled = noteContent.getAttribute("contenteditable") !== "true";
     const button = control.querySelector("button");
-    const language = highlightedCode[index]?.dataset.displayLanguage || code.dataset.language;
+    const language = CODE_LANGUAGE_OPTIONS.find(({ value }) => value === code.dataset.language)?.label
+      || code.dataset.language;
     button.setAttribute("commandfor", code.id);
-    button.setAttribute("aria-label", `Copiar código ${language === "auto" ? "detectado" : language}`);
+    button.setAttribute("aria-label", `Copiar código ${language}`);
     const plainButton = control.querySelector(".code-block-plain-button");
     plainButton.dataset.codePlainTarget = code.id;
     plainButton.disabled = noteContent.getAttribute("contenteditable") !== "true";
@@ -289,7 +265,8 @@ function updateCodeBlockControls() {
       || rect.right <= wrapRect.left
       || rect.left >= wrapRect.right;
     control.style.setProperty("--code-control-top", `${Math.max(0, rect.top - wrapRect.top + 6)}px`);
-    control.style.setProperty("--code-control-right", `${Math.max(0, wrapRect.right - rect.right + 6)}px`);
+    control.style.setProperty("--code-control-left", `${Math.max(0, rect.left - wrapRect.left + 6)}px`);
+    control.style.setProperty("--code-control-width", `${Math.max(0, Math.min(rect.right, wrapRect.right) - Math.max(rect.left, wrapRect.left) - 12)}px`);
   });
 }
 
@@ -349,39 +326,14 @@ function updateSyntaxHighlights() {
   let highlightedCount = 0;
 
   overlay.querySelectorAll("code[data-language]").forEach((code) => {
+    if (code.dataset.language === "plaintext") return;
     const highlighted = getHighlightedFragment(code.textContent, code.dataset.language);
     if (highlighted) {
-      code.replaceChildren(highlighted.fragment);
-      code.dataset.displayLanguage = highlighted.language || code.dataset.language;
-      const pre = code.closest("pre");
-      if (pre) pre.dataset.language = code.dataset.displayLanguage;
+      code.replaceChildren(highlighted);
       highlightedCount += 1;
     }
   });
 
-  function highlightAutomaticBlocks(parent) {
-    Array.from(parent.childNodes).forEach((node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        if (highlightAutomaticTextNode(node)) highlightedCount += 1;
-        return;
-      }
-      if (!(node instanceof HTMLElement) || node.tagName === "CODE") return;
-      if (node.tagName === "SPAN" && node.dataset.language === "plain") {
-        if (highlightAutomaticTextNode(node)) highlightedCount += 1;
-        return;
-      }
-      if (["DIV", "P"].includes(node.tagName)) {
-        const hasNestedElements = Array.from(node.children).some((child) => child.tagName !== "BR");
-        if (!hasNestedElements) {
-          if (highlightAutomaticTextNode(node)) highlightedCount += 1;
-          return;
-        }
-      }
-      highlightAutomaticBlocks(node);
-    });
-  }
-
-  highlightAutomaticBlocks(overlay);
   noteContentHighlights.replaceChildren(...Array.from(overlay.childNodes));
   noteContent.classList.toggle("is-syntax-highlighted", highlightedCount > 0);
   noteContentHighlights.hidden = highlightedCount === 0;

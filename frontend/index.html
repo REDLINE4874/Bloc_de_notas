@@ -222,6 +222,7 @@
                 <button class="note-context-menu__action" id="copySelectedText" type="button">Copiar</button>
                 <button class="note-context-menu__action" id="pasteIntoNote" type="button">Pegar</button>
                 <hr />
+                <button class="note-context-menu__action" id="insertCodeBlock" type="button">Insertar bloque de código</button>
                 <button class="note-context-menu__action" id="formatSelectedText" type="button" aria-controls="fontSizeDialog">Formato</button>
               </div>
             </div>
@@ -342,7 +343,7 @@
           <div class="format-code-options__field">
             <label class="format-toolbar__field-label" id="codeLanguageSelectLabel" for="codeLanguageSelectButton">Lenguaje</label>
             <div class="share-select format-toolbar__language" data-share-select="codeLanguageSelect">
-              <input id="codeLanguageSelect" type="hidden" value="auto" />
+              <input id="codeLanguageSelect" type="hidden" value="plaintext" />
               <button class="share-select__trigger" id="codeLanguageSelectButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="codeLanguageSelectOptions" aria-labelledby="codeLanguageSelectLabel codeLanguageSelectValue">
                 <span id="codeLanguageSelectValue"></span>
                 <svg class="share-select__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
@@ -350,7 +351,7 @@
               <div class="share-select__options" id="codeLanguageSelectOptions" role="listbox" aria-labelledby="codeLanguageSelectLabel" hidden></div>
             </div>
           </div>
-          <button class="button button--quiet format-code-options__apply" id="applyCodeFormat" type="button">Aplicar formato de código</button>
+          <button class="button button--quiet format-code-options__apply" id="applyCodeFormat" type="button">Insertar o convertir a bloque</button>
         </div>
       </details>
       <div class="format-dialog__actions">

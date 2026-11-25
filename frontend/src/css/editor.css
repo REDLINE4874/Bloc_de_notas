@@ -44,20 +44,24 @@
 .note-content-highlights .hljs-variable,.note-content-highlights .hljs-params,.note-content-highlights .hljs-property { color: var(--code-variable); }
 .note-content-highlights .hljs-meta,.note-content-highlights .hljs-symbol { color: var(--code-meta); }
 .note-content code,.note-content-highlights code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
-.note-content pre[data-language],.note-content-highlights pre[data-language] { position: relative; margin: 12px 0; border: 1px solid var(--line); border-radius: 12px; background: var(--input-surface); color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
-.note-content pre[data-language]::before,.note-content-highlights pre[data-language]::before { display: block; padding: 12px 14px 0; color: var(--text-soft); content: attr(data-language); font: 650 12px/1.4 Inter, "Segoe UI", system-ui, sans-serif; }
-.note-content pre[data-language] > code,.note-content-highlights pre[data-language] > code { display: block; margin: 0; border: 0; padding: 10px 14px 12px; background: transparent; color: inherit; font-size: .9em; line-height: 1.6; white-space: inherit; overflow-wrap: inherit; }
-.note-content pre[data-language]::after,.note-content-highlights pre[data-language]::after { display: block; margin: 0 14px; border-top: 1px solid var(--line); padding: 9px 0 11px; color: var(--muted); content: "Usa el código con precaución."; font: 12px/1.4 Inter, "Segoe UI", system-ui, sans-serif; }
+.note-content pre[data-language],.note-content-highlights pre[data-language] { position: relative; margin: 12px 0; border: 0; border-radius: 14px; background: var(--input-surface); color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.note-content pre[data-language] > code,.note-content-highlights pre[data-language] > code { display: block; min-height: 76px; margin: 0; border: 0; padding: 48px 14px 14px; background: transparent; color: inherit; font-size: .9em; line-height: 1.6; white-space: inherit; overflow-wrap: inherit; }
 .code-block-actions { position: absolute; z-index: 2; inset: 0; overflow: hidden; pointer-events: none; }
-.code-block-copy-control { position: absolute; top: var(--code-control-top); right: var(--code-control-right); display: flex; align-items: flex-start; gap: 6px; pointer-events: auto; }
-.code-block-copy-control[hidden] { display: none; }
+.code-block-control { position: absolute; top: var(--code-control-top); left: var(--code-control-left); display: flex; width: var(--code-control-width); align-items: flex-start; justify-content: space-between; gap: 8px; pointer-events: none; }
+.code-block-control[hidden] { display: none; }
+.code-block-language-select { min-width: 0; max-width: min(220px, 55%); min-height: 34px; border: 0; border-radius: 8px; padding: 0 9px; background: transparent; color: var(--text-soft); font: 12px/1.4 Inter, "Segoe UI", system-ui, sans-serif; pointer-events: auto; cursor: pointer; }
+.code-block-language-select:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.code-block-language-select:disabled { color: var(--muted); cursor: default; }
+.code-block-control__actions { position: relative; display: flex; align-items: flex-start; gap: 6px; pointer-events: auto; }
 .code-block-copy-button { display: grid; min-inline-size: 34px; min-block-size: 34px; place-items: center; border: 1px solid var(--line); border-radius: 8px; padding: 5px; background: var(--surface); color: var(--text-soft); box-shadow: 0 2px 8px rgb(0 0 0 / 12%); cursor: pointer; }
 .code-block-plain-button { min-inline-size: 34px; min-block-size: 34px; border: 1px solid var(--line); border-radius: 8px; padding: 0 8px; background: var(--surface); color: var(--text-soft); box-shadow: 0 2px 8px rgb(0 0 0 / 12%); cursor: pointer; font-size: 11px; white-space: nowrap; }
 .code-block-plain-button:hover:not(:disabled) { background: var(--hover); color: var(--text); }
 .code-block-plain-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .code-block-plain-button:disabled { opacity: .55; cursor: default; }
 @media (pointer: coarse) {
+  .code-block-language-select { min-height: 44px; }
   .code-block-copy-button,.code-block-plain-button { min-inline-size: 44px; min-block-size: 44px; }
+  .note-content pre[data-language] > code,.note-content-highlights pre[data-language] > code { padding-top: 58px; }
 }
 .code-block-copy-button:hover { background: var(--hover); color: var(--text); }
 .code-block-copy-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

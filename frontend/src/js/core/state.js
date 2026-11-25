@@ -89,10 +89,26 @@ var OPEN_TABS_PREFIX = "notas-app-open-tabs";
 var OPEN_TAB_STATE_TABLE = "note_tab_states";
 var READ_SHARED_NOTES_PREFIX = "notas-app-read-shared-notes";
 var NOTE_CONTENT_PREFIX = "<!-- notas-app-rich-text:v1 -->";
-var CODE_LANGUAGE_IDS = [
-  "javascript", "typescript", "python", "java", "c", "cpp", "csharp",
-  "css", "xml", "json", "sql", "bash", "yaml", "markdown",
+var CODE_LANGUAGE_OPTIONS = [
+  { value: "plaintext", label: "Texto sin formato" },
+  { value: "javascript", label: "JavaScript" },
+  { value: "typescript", label: "TypeScript" },
+  { value: "python", label: "Python" },
+  { value: "java", label: "Java" },
+  { value: "c", label: "C" },
+  { value: "cpp", label: "C++" },
+  { value: "csharp", label: "C#" },
+  { value: "css", label: "CSS" },
+  { value: "xml", label: "HTML / XML" },
+  { value: "json", label: "JSON" },
+  { value: "sql", label: "SQL" },
+  { value: "bash", label: "Bash" },
+  { value: "yaml", label: "YAML" },
+  { value: "markdown", label: "Markdown" },
 ];
+var CODE_LANGUAGE_IDS = CODE_LANGUAGE_OPTIONS
+  .filter(({ value }) => value !== "plaintext")
+  .map(({ value }) => value);
 var NOTE_FONT_FAMILIES = [
   "Inter, 'Segoe UI', system-ui, sans-serif",
   "Arial, sans-serif",

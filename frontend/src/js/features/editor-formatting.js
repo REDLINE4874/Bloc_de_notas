@@ -5,6 +5,7 @@ const noteContextMenuItems = document.getElementById("noteContextMenuItems");
 const cutSelectedText = document.getElementById("cutSelectedText");
 const copySelectedText = document.getElementById("copySelectedText");
 const pasteIntoNote = document.getElementById("pasteIntoNote");
+const insertCodeBlock = document.getElementById("insertCodeBlock");
 const formatSelectedText = document.getElementById("formatSelectedText");
 const noteContextMenuButtons = Array.from(noteContextMenuItems.querySelectorAll("button"));
 let contextMenuRange = null;
@@ -173,6 +174,23 @@ function createCodeBlock(text, language) {
   return pre;
 }
 
+function insertEmptyCodeBlockAtRange(range, language) {
+  if (!range
+    || !noteContent.contains(range.startContainer)
+    || !noteContent.contains(range.endContainer)) return false;
+  const existingFormatting = getCodeFormattingAncestor(range.startContainer);
+  const existingBlock = existingFormatting?.closest("pre");
+  if (existingBlock) {
+    range.selectNode(existingBlock);
+    range.collapse(false);
+  }
+  const codeBlock = createCodeBlock("", language);
+  range.deleteContents();
+  range.insertNode(codeBlock);
+  selectCodeBlock(range, codeBlock);
+  return true;
+}
+
 function selectCodeBlock(range, pre) {
   const code = pre.querySelector("code");
   range.selectNodeContents(code);
@@ -205,28 +223,18 @@ function convertCodeBlockToPlainText(codeBlock, restoreEditorFocus = false) {
 function applyCodeFormatting() {
   restoreEditorSelection();
   const range = getEditorSelectionRange() || savedEditorSelection?.cloneRange();
-  if (!range || range.collapsed) {
-    setGlobalStatus("Selecciona el código que quieres resaltar.", true);
+  if (!range) {
+    setGlobalStatus("Coloca el cursor o selecciona el texto que quieres convertir en código.", true);
     return;
   }
 
   const language = codeLanguageSelect.value;
+  if (!CODE_LANGUAGE_OPTIONS.some(({ value }) => value === language)) {
+    setGlobalStatus("Selecciona un lenguaje válido para el bloque de código.", true);
+    return;
+  }
   const existingFormatting = getCodeFormattingForRange(range);
   if (existingFormatting) {
-    if (language === "plain") {
-      if (existingFormatting.tagName === "CODE" || existingFormatting.tagName === "PRE") {
-        convertCodeBlockToPlainText(existingFormatting.closest("pre") || existingFormatting);
-      } else {
-        range.selectNodeContents(existingFormatting);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        pendingCodeLanguageSelection = false;
-        saveEditorSelection();
-        noteContent.dispatchEvent(new Event("input", { bubbles: true }));
-      }
-      return;
-    }
     if (existingFormatting.tagName === "SPAN") {
       const codeBlock = createCodeBlock(existingFormatting.textContent, language);
       existingFormatting.replaceWith(codeBlock);
@@ -245,14 +253,9 @@ function applyCodeFormatting() {
     }
     return;
   }
-  if (language === "plain") {
-    setGlobalStatus("Selecciona un bloque de código para quitar su formato.", true);
-    return;
-  }
-
   const selectedText = getPlainTextFromRichContent(range.cloneContents());
-  if (!selectedText) {
-    setGlobalStatus("Selecciona el código que quieres resaltar.", true);
+  if (range.collapsed || !selectedText) {
+    insertEmptyCodeBlockAtRange(range, language);
     return;
   }
 
@@ -378,11 +381,9 @@ function updateFormatToolbarState() {
   const element = parent instanceof Element ? parent : parent?.parentElement;
   const style = element && noteContent.contains(element) ? getComputedStyle(element) : null;
   const code = range && getCodeFormattingForRange(range);
-  const codeLanguage = code?.tagName === "SPAN"
-    ? "plain"
-    : code && shareSelectHasOption("codeLanguageSelect", code.dataset.language)
+  const codeLanguage = code && shareSelectHasOption("codeLanguageSelect", code.dataset.language)
       ? code.dataset.language
-      : "auto";
+      : "plaintext";
   if (!pendingCodeLanguageSelection) setShareSelectValue("codeLanguageSelect", codeLanguage);
   const fontFamily = style
     ? NOTE_FONT_FAMILIES.find((family) => family.replace(/["']/g, "").toLowerCase() === style.fontFamily.replace(/["']/g, "").toLowerCase()) || NOTE_FONT_FAMILIES[0]
@@ -563,6 +564,7 @@ function openSelectedTextContextMenu(event) {
   savedEditorSelection = contextMenuRange.cloneRange();
   cutSelectedText.disabled = !selectedRange;
   copySelectedText.disabled = !selectedRange;
+  insertCodeBlock.disabled = Boolean(selectedRange);
   formatSelectedText.disabled = !selectedRange;
 
   noteContextMenuAnchor.style.left = `${x}px`;
@@ -598,6 +600,12 @@ noteContent.addEventListener("contextmenu", openSelectedTextContextMenu);
 cutSelectedText.addEventListener("click", cutContextText);
 copySelectedText.addEventListener("click", copyContextText);
 pasteIntoNote.addEventListener("click", pasteContextText);
+insertCodeBlock.addEventListener("click", () => {
+  const range = contextMenuRange?.cloneRange();
+  closeNoteContextMenu(range);
+  if (!range || !range.collapsed || !canEditCurrentNoteContent()) return;
+  insertEmptyCodeBlockAtRange(range, "plaintext");
+});
 formatSelectedText.addEventListener("click", () => {
   const range = contextMenuRange?.cloneRange();
   closeNoteContextMenu(range);
@@ -663,6 +671,39 @@ formatToolbar.querySelectorAll("[data-format-command]").forEach((button) => {
 });
 applyCodeFormat.addEventListener("pointerdown", (event) => event.preventDefault());
 applyCodeFormat.addEventListener("click", applyCodeFormatting);
+codeBlockActions.addEventListener("change", (event) => {
+  const languageSelect = event.target instanceof HTMLSelectElement
+    ? event.target.closest(".code-block-language-select")
+    : null;
+  if (!languageSelect || !canEditCurrentNoteContent()) return;
+
+  const language = CODE_LANGUAGE_OPTIONS.find(({ value }) => value === languageSelect.value);
+  const code = document.getElementById(languageSelect.dataset.codeLanguageTarget);
+  if (!language || !(code instanceof HTMLElement) || code.tagName !== "CODE" || !noteContent.contains(code)) {
+    setGlobalStatus("No se encontró el bloque de código para actualizar.", true);
+    updateCodeBlockControls();
+    return;
+  }
+  const codeBlock = code.closest("pre");
+  if (!codeBlock) {
+    setGlobalStatus("No se encontró el contenedor del bloque de código.", true);
+    updateCodeBlockControls();
+    return;
+  }
+
+  const selection = savedEditorSelection
+    && noteContent.contains(savedEditorSelection.startContainer)
+    && noteContent.contains(savedEditorSelection.endContainer)
+    ? savedEditorSelection.cloneRange()
+    : null;
+  code.dataset.language = language.value;
+  codeBlock.dataset.language = language.value;
+  noteContent.dispatchEvent(new Event("input", { bubbles: true }));
+  if (selection) {
+    restoreEditorSelection(selection);
+    saveEditorSelection();
+  }
+});
 codeBlockActions.addEventListener("click", (event) => {
   const button = event.target instanceof Element
     ? event.target.closest("[data-code-plain-target]")
@@ -763,24 +804,7 @@ initializeShareSelect("fontSizeSelect", "16", [
   "8px", "9px", "10px", "11px", "12px", "13px", "14px", "16px",
   "18px", "20px", "22px", "24px", "26px", "28px", "32px", "36px", "48px", "72px",
 ].map((value) => ({ value, label: value.slice(0, -2) })), (value) => applyInlineStyle("font-size", value));
-initializeShareSelect("codeLanguageSelect", "Detectar lenguaje", [
-  { value: "plain", label: "Texto normal" },
-  { value: "auto", label: "Detectar lenguaje" },
-  { value: "javascript", label: "JavaScript" },
-  { value: "typescript", label: "TypeScript" },
-  { value: "python", label: "Python" },
-  { value: "java", label: "Java" },
-  { value: "c", label: "C" },
-  { value: "cpp", label: "C++" },
-  { value: "csharp", label: "C#" },
-  { value: "css", label: "CSS" },
-  { value: "xml", label: "HTML / XML" },
-  { value: "json", label: "JSON" },
-  { value: "sql", label: "SQL" },
-  { value: "bash", label: "Bash" },
-  { value: "yaml", label: "YAML" },
-  { value: "markdown", label: "Markdown" },
-], () => {
+initializeShareSelect("codeLanguageSelect", "Texto sin formato", CODE_LANGUAGE_OPTIONS, () => {
   pendingCodeLanguageSelection = true;
 });
 initializeShareSelect("shareUsername", "Selecciona un usuario", []);
