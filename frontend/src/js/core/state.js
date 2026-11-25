@@ -69,7 +69,6 @@ var fontSizeOption = document.getElementById("fontSizeOption");
 var fontSizeDialog = document.getElementById("fontSizeDialog");
 var fontFamilySelect = document.getElementById("fontFamilySelect");
 var fontSizeSelect = document.getElementById("fontSizeSelect");
-var codeLanguageSelect = document.getElementById("codeLanguageSelect");
 var applyCodeFormat = document.getElementById("applyCodeFormat");
 var cancelFontSize = document.getElementById("cancelFontSize");
 var confirmFontSize = document.getElementById("confirmFontSize");

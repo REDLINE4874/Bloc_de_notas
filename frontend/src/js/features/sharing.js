@@ -129,7 +129,6 @@ function initializeShareSelect(selectId, placeholder, items, onSelect) {
       shareStatus.classList.remove("is-error");
     }
     closeShareSelect(root, true);
-    if (selectId === "codeLanguageSelect") restoreEditorSelection();
     onSelect?.(value);
   });
 
