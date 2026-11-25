@@ -170,6 +170,7 @@ function createCodeBlock(text, language) {
   const code = document.createElement("code");
   code.dataset.language = language;
   code.textContent = text;
+  code.spellcheck = false;
   pre.append(code);
   return pre;
 }
@@ -202,15 +203,13 @@ function selectCodeBlock(range, pre) {
   noteContent.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
-function convertCodeBlockToPlainText(codeBlock, restoreEditorFocus = false) {
+function deleteCodeBlock(codeBlock) {
   if (!codeBlock || !noteContent.contains(codeBlock)) return false;
-  const plainText = document.createElement("span");
-  plainText.dataset.language = "plain";
-  plainText.textContent = codeBlock.textContent;
-  codeBlock.replaceWith(plainText);
-  if (restoreEditorFocus) noteContent.focus();
   const range = document.createRange();
-  range.selectNodeContents(plainText);
+  range.selectNode(codeBlock);
+  range.deleteContents();
+  range.collapse(true);
+  noteContent.focus();
   const selection = window.getSelection();
   selection.removeAllRanges();
   selection.addRange(range);
@@ -383,7 +382,7 @@ function updateFormatToolbarState() {
   const code = range && getCodeFormattingForRange(range);
   const codeLanguage = code && shareSelectHasOption("codeLanguageSelect", code.dataset.language)
       ? code.dataset.language
-      : "plaintext";
+      : "auto";
   if (!pendingCodeLanguageSelection) setShareSelectValue("codeLanguageSelect", codeLanguage);
   const fontFamily = style
     ? NOTE_FONT_FAMILIES.find((family) => family.replace(/["']/g, "").toLowerCase() === style.fontFamily.replace(/["']/g, "").toLowerCase()) || NOTE_FONT_FAMILIES[0]
@@ -604,7 +603,7 @@ insertCodeBlock.addEventListener("click", () => {
   const range = contextMenuRange?.cloneRange();
   closeNoteContextMenu(range);
   if (!range || !range.collapsed || !canEditCurrentNoteContent()) return;
-  insertEmptyCodeBlockAtRange(range, "plaintext");
+  insertEmptyCodeBlockAtRange(range, "auto");
 });
 formatSelectedText.addEventListener("click", () => {
   const range = contextMenuRange?.cloneRange();
@@ -706,17 +705,17 @@ codeBlockActions.addEventListener("change", (event) => {
 });
 codeBlockActions.addEventListener("click", (event) => {
   const button = event.target instanceof Element
-    ? event.target.closest("[data-code-plain-target]")
+    ? event.target.closest("[data-code-delete-target]")
     : null;
   if (!button || button.disabled) return;
   if (noteContent.getAttribute("contenteditable") !== "true") return;
-  const code = document.getElementById(button.dataset.codePlainTarget);
+  const code = document.getElementById(button.dataset.codeDeleteTarget);
   const codeBlock = code?.closest("pre");
   if (!codeBlock) {
-    setGlobalStatus("No se encontró el bloque de código para convertirlo.", true);
+    setGlobalStatus("No se encontró el bloque de código para eliminarlo.", true);
     return;
   }
-  convertCodeBlockToPlainText(codeBlock, true);
+  deleteCodeBlock(codeBlock);
 });
 
 if (!("focusGroup" in HTMLElement.prototype)) {
@@ -804,7 +803,7 @@ initializeShareSelect("fontSizeSelect", "16", [
   "8px", "9px", "10px", "11px", "12px", "13px", "14px", "16px",
   "18px", "20px", "22px", "24px", "26px", "28px", "32px", "36px", "48px", "72px",
 ].map((value) => ({ value, label: value.slice(0, -2) })), (value) => applyInlineStyle("font-size", value));
-initializeShareSelect("codeLanguageSelect", "Texto sin formato", CODE_LANGUAGE_OPTIONS, () => {
+initializeShareSelect("codeLanguageSelect", "Detectar lenguaje", CODE_LANGUAGE_OPTIONS, () => {
   pendingCodeLanguageSelection = true;
 });
 initializeShareSelect("shareUsername", "Selecciona un usuario", []);

@@ -28,11 +28,12 @@ function sanitizeNoteContent(html) {
       const storedLanguage = node.getAttribute("data-language");
       const codeLanguage = ["CODE", "PRE"].includes(node.tagName)
         && (CODE_LANGUAGE_IDS.includes(storedLanguage) || ["auto", "plaintext"].includes(storedLanguage))
-        ? (storedLanguage === "auto" ? "plaintext" : storedLanguage)
+        ? (storedLanguage === "plaintext" ? "auto" : storedLanguage)
         : "";
       Array.from(node.attributes).forEach((attribute) => node.removeAttribute(attribute.name));
       if (isPlainText) node.dataset.language = "plain";
       if (codeLanguage) node.dataset.language = codeLanguage;
+      if (node.tagName === "CODE" && codeLanguage) node.spellcheck = false;
       if (fontFamily) {
         const safeFamily = NOTE_FONT_FAMILIES.find((family) => normalizeFont(family) === normalizeFont(fontFamily));
         if (safeFamily) node.style.fontFamily = safeFamily;
@@ -150,7 +151,10 @@ function serializeNoteContent() {
 
 function getHighlightedFragment(source, language) {
   if (!window.hljs || !source || language === "plaintext") return null;
-  const result = window.hljs.highlight(source, { language });
+  const result = language === "auto"
+    ? window.hljs.highlightAuto(source, CODE_LANGUAGE_IDS)
+    : window.hljs.highlight(source, { language });
+  if (language === "auto" && !result.language) return null;
 
   const template = document.createElement("template");
   template.innerHTML = result.value;
@@ -187,7 +191,7 @@ function updateCodeBlockControls() {
     codeBlockActions.replaceChildren();
     codeBlocks.forEach((code) => {
       const control = document.createElement("div");
-      control.className = "code-block-control";
+      control.className = "code-block-copy-control code-block-control";
       const languageSelect = document.createElement("select");
       languageSelect.className = "code-block-language-select";
       languageSelect.setAttribute("aria-label", "Lenguaje del bloque de código");
@@ -229,12 +233,19 @@ function updateCodeBlockControls() {
       status.className = "code-block-copy-status";
       status.setAttribute("role", "status");
       status.setAttribute("aria-live", "polite");
-      const plainButton = document.createElement("button");
-      plainButton.type = "button";
-      plainButton.className = "code-block-plain-button";
-      plainButton.textContent = "Texto normal";
-      plainButton.setAttribute("aria-label", "Texto normal: regresar el bloque de código");
-      actions.append(button, status, plainButton);
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "code-block-delete-button";
+      deleteButton.setAttribute("aria-label", "Eliminar bloque de código");
+      deleteButton.title = "Eliminar bloque de código";
+      const deleteIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      deleteIcon.setAttribute("viewBox", "0 0 24 24");
+      deleteIcon.setAttribute("aria-hidden", "true");
+      const deletePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      deletePath.setAttribute("d", "M4 7h16M9 7V4h6v3m-9 0 1 13h10l1-13M10 11v5m4-5v5");
+      deleteIcon.append(deletePath);
+      deleteButton.append(deleteIcon);
+      actions.append(button, status, deleteButton);
       control.append(languageSelect, actions);
       codeBlockActions.append(control);
     });
@@ -243,21 +254,22 @@ function updateCodeBlockControls() {
   const wrapRect = noteContentWrap.getBoundingClientRect();
   Array.from(codeBlockActions.children).forEach((control, index) => {
     const code = codeBlocks[index];
+    code.spellcheck = false;
     if (!code.id) code.id = `noteCodeBlock-${++codeBlockIdCounter}`;
     const languageSelect = control.querySelector(".code-block-language-select");
     languageSelect.dataset.codeLanguageTarget = code.id;
     languageSelect.value = CODE_LANGUAGE_OPTIONS.some(({ value }) => value === code.dataset.language)
       ? code.dataset.language
-      : "plaintext";
+      : "auto";
     languageSelect.disabled = noteContent.getAttribute("contenteditable") !== "true";
     const button = control.querySelector("button");
     const language = CODE_LANGUAGE_OPTIONS.find(({ value }) => value === code.dataset.language)?.label
       || code.dataset.language;
     button.setAttribute("commandfor", code.id);
     button.setAttribute("aria-label", `Copiar código ${language}`);
-    const plainButton = control.querySelector(".code-block-plain-button");
-    plainButton.dataset.codePlainTarget = code.id;
-    plainButton.disabled = noteContent.getAttribute("contenteditable") !== "true";
+    const deleteButton = control.querySelector(".code-block-delete-button");
+    deleteButton.dataset.codeDeleteTarget = code.id;
+    deleteButton.disabled = noteContent.getAttribute("contenteditable") !== "true";
 
     const rect = code.parentElement.getBoundingClientRect();
     control.hidden = rect.bottom <= wrapRect.top
@@ -266,6 +278,7 @@ function updateCodeBlockControls() {
       || rect.left >= wrapRect.right;
     control.style.setProperty("--code-control-top", `${Math.max(0, rect.top - wrapRect.top + 6)}px`);
     control.style.setProperty("--code-control-left", `${Math.max(0, rect.left - wrapRect.left + 6)}px`);
+    control.style.setProperty("--code-control-right", `${Math.max(0, wrapRect.right - rect.right + 6)}px`);
     control.style.setProperty("--code-control-width", `${Math.max(0, Math.min(rect.right, wrapRect.right) - Math.max(rect.left, wrapRect.left) - 12)}px`);
   });
 }

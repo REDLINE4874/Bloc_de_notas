@@ -1,4 +1,4 @@
-const CACHE_NAME = "notas-standalone-shell-v18";
+const CACHE_NAME = "notas-standalone-shell-v23";
 const CACHE_PREFIX = "notas-standalone-shell-";
 const APP_SHELL = new URL("./", self.location.href).toString();
 const SHELL_FILES = [
@@ -32,7 +32,7 @@ const SHELL_FILES = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(SHELL_FILES))
+      .then((cache) => cache.addAll(SHELL_FILES.map((url) => new Request(url, { cache: "reload" }))))
       .then(() => self.skipWaiting()),
   );
 });

@@ -90,7 +90,7 @@ var OPEN_TAB_STATE_TABLE = "note_tab_states";
 var READ_SHARED_NOTES_PREFIX = "notas-app-read-shared-notes";
 var NOTE_CONTENT_PREFIX = "<!-- notas-app-rich-text:v1 -->";
 var CODE_LANGUAGE_OPTIONS = [
-  { value: "plaintext", label: "Texto sin formato" },
+  { value: "auto", label: "Detectar lenguaje" },
   { value: "javascript", label: "JavaScript" },
   { value: "typescript", label: "TypeScript" },
   { value: "python", label: "Python" },
@@ -107,7 +107,7 @@ var CODE_LANGUAGE_OPTIONS = [
   { value: "markdown", label: "Markdown" },
 ];
 var CODE_LANGUAGE_IDS = CODE_LANGUAGE_OPTIONS
-  .filter(({ value }) => value !== "plaintext")
+  .filter(({ value }) => value !== "auto")
   .map(({ value }) => value);
 var NOTE_FONT_FAMILIES = [
   "Inter, 'Segoe UI', system-ui, sans-serif",
