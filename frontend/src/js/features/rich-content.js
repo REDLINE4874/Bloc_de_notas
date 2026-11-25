@@ -149,6 +149,21 @@ function serializeNoteContent() {
   return `${NOTE_CONTENT_PREFIX}${sanitizeNoteContent(noteContent.innerHTML)}`;
 }
 
+const detectedCodeLanguages = new WeakMap();
+
+function getDetectedCodeLanguage(code) {
+  const source = code.textContent;
+  const cachedDetection = detectedCodeLanguages.get(code);
+  if (cachedDetection?.source === source) return cachedDetection.language;
+
+  const detectedLanguage = window.hljs && source.trim()
+    ? window.hljs.highlightAuto(source, CODE_LANGUAGE_IDS).language
+    : null;
+  const language = CODE_LANGUAGE_IDS.includes(detectedLanguage) ? detectedLanguage : null;
+  detectedCodeLanguages.set(code, { source, language });
+  return language;
+}
+
 function getHighlightedFragment(source, language) {
   if (!window.hljs || !source || language === "plaintext") return null;
   const result = language === "auto"
@@ -178,7 +193,7 @@ function getHighlightedFragment(source, language) {
     node.childNodes.forEach((child) => appendSafeNode(child, parent));
   };
   template.content.childNodes.forEach((node) => appendSafeNode(node, fragment));
-  return fragment;
+  return { fragment, language: result.language };
 }
 
 var codeBlockIdCounter = 0;
@@ -258,9 +273,19 @@ function updateCodeBlockControls() {
     if (!code.id) code.id = `noteCodeBlock-${++codeBlockIdCounter}`;
     const languageSelect = control.querySelector(".code-block-language-select");
     languageSelect.dataset.codeLanguageTarget = code.id;
-    languageSelect.value = CODE_LANGUAGE_OPTIONS.some(({ value }) => value === code.dataset.language)
+    const storedLanguage = CODE_LANGUAGE_OPTIONS.some(({ value }) => value === code.dataset.language)
       ? code.dataset.language
       : "auto";
+    const detectedLanguage = storedLanguage === "auto" ? getDetectedCodeLanguage(code) : null;
+    const displayedLanguage = detectedLanguage || storedLanguage;
+    languageSelect.value = displayedLanguage;
+    const displayedLanguageLabel = CODE_LANGUAGE_OPTIONS.find(({ value }) => value === displayedLanguage)?.label;
+    languageSelect.setAttribute(
+      "aria-label",
+      storedLanguage === "auto" && detectedLanguage
+        ? `Lenguaje detectado: ${displayedLanguageLabel}. Selecciona otro si no es correcto.`
+        : "Lenguaje del bloque de código",
+    );
     languageSelect.disabled = noteContent.getAttribute("contenteditable") !== "true";
     const button = control.querySelector("button");
     const language = CODE_LANGUAGE_OPTIONS.find(({ value }) => value === code.dataset.language)?.label
@@ -337,13 +362,27 @@ function updateSyntaxHighlights() {
   const overlay = noteContent.cloneNode(true);
   overlay.querySelectorAll("pre > code[id]").forEach((code) => code.removeAttribute("id"));
   let highlightedCount = 0;
+  const sourceCodeBlocks = Array.from(noteContent.querySelectorAll("code[data-language]"));
 
-  overlay.querySelectorAll("code[data-language]").forEach((code) => {
+  overlay.querySelectorAll("code[data-language]").forEach((code, index) => {
+    const sourceCode = sourceCodeBlocks[index];
+    if (!sourceCode) return;
+    if (sourceCode.dataset.language !== "auto") {
+      detectedCodeLanguages.delete(sourceCode);
+    }
     if (code.dataset.language === "plaintext") return;
     const highlighted = getHighlightedFragment(code.textContent, code.dataset.language);
     if (highlighted) {
-      code.replaceChildren(highlighted);
+      code.replaceChildren(highlighted.fragment);
+      if (sourceCode.dataset.language === "auto") {
+        detectedCodeLanguages.set(sourceCode, {
+          source: sourceCode.textContent,
+          language: CODE_LANGUAGE_IDS.includes(highlighted.language) ? highlighted.language : null,
+        });
+      }
       highlightedCount += 1;
+    } else if (sourceCode.dataset.language === "auto") {
+      detectedCodeLanguages.set(sourceCode, { source: sourceCode.textContent, language: null });
     }
   });
 

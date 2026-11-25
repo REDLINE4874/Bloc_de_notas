@@ -99,6 +99,41 @@ if (!supabaseReady) {
     lastEditorInput = noteContent;
   });
   noteContent.addEventListener("keydown", (event) => {
+    if (event.key === "Backspace" || event.key === "Delete") {
+      const range = getEditorSelectionRange();
+      const startElement = range?.startContainer.nodeType === Node.ELEMENT_NODE
+        ? range.startContainer
+        : range?.startContainer.parentElement;
+      const codeBlock = startElement?.closest('pre[data-language]');
+      const code = codeBlock?.querySelector("code[data-language]");
+      if (range?.collapsed && codeBlock && noteContent.contains(codeBlock) && code?.textContent === "") {
+        event.preventDefault();
+        return;
+      }
+    }
+
+    if (event.key === "Enter" && !event.ctrlKey && !event.metaKey) {
+      const range = getEditorSelectionRange();
+      const startElement = range?.startContainer.nodeType === Node.ELEMENT_NODE
+        ? range.startContainer
+        : range?.startContainer.parentElement;
+      const codeBlock = startElement?.closest('pre[data-language]');
+      if (codeBlock && noteContent.contains(codeBlock)) {
+        event.preventDefault();
+        if (readNoteContentText().length >= NOTE_MAX_LENGTH && range.collapsed) return;
+        const selection = window.getSelection();
+        range.deleteContents();
+        const lineBreak = document.createTextNode("\n");
+        range.insertNode(lineBreak);
+        range.setStartAfter(lineBreak);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        saveEditorSelection();
+        noteContent.dispatchEvent(new Event("input", { bubbles: true }));
+        return;
+      }
+    }
     if (event.key !== "Tab" || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
     event.preventDefault();
     const selection = window.getSelection();

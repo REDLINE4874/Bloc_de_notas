@@ -31,7 +31,7 @@
 .note-title,.note-content { display: block; width: 100%; border: 0; outline: 0; background: transparent; color: var(--text); }
 .note-title { grid-row: 2; grid-column: 1 / -1; margin: 2px 0 0; padding: 0; font-size: clamp(26px, 4vw, 39px); font-weight: 700; letter-spacing: -.045em; }
 .note-title::placeholder { color: var(--placeholder); }
-.note-content-wrap { position: relative; display: flex; min-height: 0; flex: 1; overflow: hidden; margin-top: 19px; font-size: 16px; line-height: 1.8; }
+.note-content-wrap { position: relative; display: flex; min-height: 0; flex: 1; overflow: hidden; margin-top: 19px; font-size: 16px; line-height: 1.6; }
 .note-content-highlights { position: absolute; z-index: 0; inset: 0; overflow: visible; color: var(--text); white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; pointer-events: none; }
 .note-content-highlights[hidden] { display: none; }
 :where(.note-content,.note-content-highlights) > span:has(> div) { display: contents; }
@@ -46,13 +46,13 @@
 .note-content-highlights .hljs-meta,.note-content-highlights .hljs-symbol { color: var(--code-meta); }
 .note-content code,.note-content-highlights code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
 .note-content pre[data-language],.note-content-highlights pre[data-language] { position: relative; margin: 12px 0; border: 0; border-radius: 14px; background: var(--input-surface); color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
-.note-content pre[data-language] > code,.note-content-highlights pre[data-language] > code { display: block; min-height: 144px; margin: 0; border: 0; padding: 64px 14px 14px; background: transparent; color: inherit; font-size: .9em; line-height: 1.6; white-space: inherit; overflow-wrap: inherit; }
+.note-content pre[data-language] > code,.note-content-highlights pre[data-language] > code { display: block; min-block-size: calc(1.6em + 48px + 10px); margin: 0; border: 0; padding: 48px 14px 10px; background: transparent; color: inherit; font-size: .9em; line-height: 1.6; white-space: inherit; overflow-wrap: inherit; }
 .code-block-actions { position: absolute; z-index: 2; inset: 0; overflow: hidden; pointer-events: none; }
 .code-block-copy-control { position: absolute; top: var(--code-control-top); right: var(--code-control-right); display: flex; align-items: flex-start; gap: 6px; pointer-events: auto; }
 .code-block-copy-control[hidden] { display: none; }
 .code-block-control { position: absolute; top: var(--code-control-top); left: var(--code-control-left); display: flex; width: var(--code-control-width); align-items: flex-start; justify-content: space-between; gap: 8px; pointer-events: none; }
 .code-block-control[hidden] { display: none; }
-.code-block-language-select { min-width: 0; inline-size: min(190px, 55%); min-height: 34px; border: 1px solid var(--line); border-radius: 8px; padding: 0 27px 0 10px; appearance: none; background-color: var(--surface); background-image: linear-gradient(45deg, transparent 50%, var(--text-soft) 50%), linear-gradient(135deg, var(--text-soft) 50%, transparent 50%); background-repeat: no-repeat; background-position: calc(100% - 13px) 50%, calc(100% - 9px) 50%; background-size: 4px 4px; color: var(--text-soft); color-scheme: light; font: 12px/1.4 Inter, "Segoe UI", system-ui, sans-serif; pointer-events: auto; cursor: pointer; transition: border-color .16s ease, box-shadow .16s ease; }
+.code-block-language-select { min-width: 0; inline-size: fit-content; max-inline-size: min(190px, 55%); min-height: 34px; align-self: flex-start; field-sizing: content; border: 1px solid var(--line); border-radius: 8px; padding: 0 27px 0 10px; appearance: none; background-color: var(--surface); background-image: linear-gradient(45deg, transparent 50%, var(--text-soft) 50%), linear-gradient(135deg, var(--text-soft) 50%, transparent 50%); background-repeat: no-repeat; background-position: calc(100% - 13px) 50%, calc(100% - 9px) 50%; background-size: 4px 4px; color: var(--text-soft); color-scheme: light; font: 12px/1.4 Inter, "Segoe UI", system-ui, sans-serif; pointer-events: auto; cursor: pointer; transition: border-color .16s ease, box-shadow .16s ease; }
 .code-block-language-select:hover:not(:disabled) { border-color: var(--muted-strong); }
 .code-block-language-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .code-block-language-select:disabled { color: var(--muted); cursor: default; }
@@ -75,7 +75,7 @@
 @media (pointer: coarse) {
   .code-block-language-select { min-height: 44px; }
   .code-block-copy-button,.code-block-delete-button { min-inline-size: 44px; min-block-size: 44px; }
-  .note-content pre[data-language] > code,.note-content-highlights pre[data-language] > code { min-height: 152px; padding-top: 72px; }
+  .note-content pre[data-language] > code,.note-content-highlights pre[data-language] > code { min-block-size: calc(1.6em + 56px + 10px); padding-top: 56px; }
 }
 .code-block-copy-button:hover { background: var(--hover); color: var(--text); }
 .code-block-copy-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
