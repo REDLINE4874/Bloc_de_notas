@@ -61,6 +61,66 @@ function sanitizeNoteContent(html) {
   return root.innerHTML;
 }
 
+function parseRgbColor(value) {
+  const hex = String(value).match(/^#([\da-f]{6})$/i);
+  if (hex) {
+    return [0, 2, 4].map((offset) => Number.parseInt(hex[1].slice(offset, offset + 2), 16));
+  }
+  const rgb = String(value).match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  return rgb ? rgb.slice(1, 4).map(Number) : null;
+}
+
+function getRelativeLuminance(channels) {
+  const linear = channels.map((channel) => {
+    const value = channel / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+}
+
+function getContrastRatio(foreground, background) {
+  const foregroundLuminance = getRelativeLuminance(foreground);
+  const backgroundLuminance = getRelativeLuminance(background);
+  return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+    / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+}
+
+function getDarkThemeTextColor(foreground, background) {
+  if (getContrastRatio(foreground, background) >= 4.5) return "";
+  let lower = 0;
+  let upper = 1;
+  for (let attempt = 0; attempt < 18; attempt += 1) {
+    const amount = (lower + upper) / 2;
+    const candidate = foreground.map((channel) => Math.round(channel + (255 - channel) * amount));
+    if (getContrastRatio(candidate, background) >= 4.5) upper = amount;
+    else lower = amount;
+  }
+  const adjusted = foreground.map((channel) => Math.round(channel + (255 - channel) * upper));
+  return `rgb(${adjusted.join(", ")})`;
+}
+
+function updateNoteTextContrast() {
+  const isDark = document.documentElement.dataset.theme === "dark";
+  const background = parseRgbColor(getComputedStyle(noteEditor).backgroundColor);
+  [noteContent, noteContentHighlights].forEach((root) => {
+    root.querySelectorAll("span[style]").forEach((span) => {
+      const property = "--note-display-text-color";
+      if (!isDark || !background || !span.style.color) {
+        span.style.removeProperty(property);
+        return;
+      }
+      const foreground = parseRgbColor(span.style.color);
+      if (!foreground) {
+        span.style.removeProperty(property);
+        return;
+      }
+      const adjusted = getDarkThemeTextColor(foreground, background);
+      if (adjusted) span.style.setProperty(property, adjusted);
+      else span.style.removeProperty(property);
+    });
+  });
+}
+
 function setNoteContent(content) {
   const storedContent = String(content ?? "");
   const isRichContent = storedContent.startsWith(NOTE_CONTENT_PREFIX);
@@ -75,6 +135,7 @@ function setNoteContent(content) {
   } else {
     noteContent.textContent = storedContent;
   }
+  updateNoteTextContrast();
 }
 
 function getPlainTextFromRichContent(root, trimTrailingNewline = true) {
