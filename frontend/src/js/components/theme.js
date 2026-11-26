@@ -7,7 +7,6 @@ function applyTheme(theme) {
     toggle.title = `Cambiar a tema ${isDark ? "claro" : "oscuro"}`;
   });
   document.querySelector('meta[name="theme-color"]').content = isDark ? "#292929" : "#E4E4E5";
-  if (typeof updateNoteTextContrast === "function") updateNoteTextContrast();
 }
 
 function initializeTheme() {

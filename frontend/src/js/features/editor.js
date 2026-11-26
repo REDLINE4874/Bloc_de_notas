@@ -93,7 +93,6 @@ function applyNoteHistorySnapshot(snapshot) {
   applyingNoteHistory = true;
   noteTitle.value = snapshot.title;
   noteContent.innerHTML = sanitizeNoteContent(snapshot.content);
-  updateNoteTextContrast();
   saveEditorSelection();
   applyingNoteHistory = false;
   noteTitle.dispatchEvent(new Event("input", { bubbles: true }));

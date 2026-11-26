@@ -315,7 +315,6 @@ function updateCodeCaretStyle(range) {
 function removeInlineStyle(fragment, property) {
   fragment.querySelectorAll("span[style]").forEach((span) => {
     span.style.removeProperty(property);
-    if (property === "color") span.style.removeProperty("--note-display-text-color");
     if (!span.getAttribute("style")) span.removeAttribute("style");
   });
 }
@@ -481,7 +480,6 @@ function applyInlineStyle(property, value) {
     if (value) existingSpan.style.setProperty(property, value);
     else existingSpan.style.removeProperty(property);
     if (!existingSpan.getAttribute("style")) existingSpan.removeAttribute("style");
-    if (property === "color") updateNoteTextContrast();
     saveEditorSelection();
     noteContent.dispatchEvent(new Event("input", { bubbles: true }));
     return;
@@ -492,7 +490,6 @@ function applyInlineStyle(property, value) {
   if (value) wrapper.style.setProperty(property, value);
   wrapper.append(contents);
   range.insertNode(wrapper);
-  if (property === "color") updateNoteTextContrast();
   range.selectNodeContents(wrapper);
   const selection = window.getSelection();
   selection.removeAllRanges();

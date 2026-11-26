@@ -130,7 +130,6 @@
   .code-block-copy-status { transition: none; }
 }
 .note-content { position: relative; z-index: 1; display: block; width: 100%; min-height: 0; flex: 1; overflow: auto; margin: 0; border: 0; padding: 0; background: transparent; font: inherit; line-height: inherit; white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; }
-:root[data-theme="dark"] .note-content span[style*="--note-display-text-color"] { color: var(--note-display-text-color) !important; }
 .note-context-menu-anchor { position: fixed; inline-size: 0; block-size: 0; }
 .note-context-menu { position: fixed; inset: auto; min-width: 144px; max-width: calc(100vw - 16px); margin: 0; border: 1px solid var(--line); border-radius: 9px; padding: 4px; background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 .note-context-menu[data-anchor-positioned] { position-area: block-end span-inline-end; position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline; }
