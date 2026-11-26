@@ -112,21 +112,30 @@ function getExplicitTextColor(range) {
 function positionTextColorPalette() {
   if (textColorPalette.hidden) return;
   textColorPalette.style.removeProperty("max-height");
+  const viewport = window.visualViewport;
+  const viewportLeft = viewport?.offsetLeft || 0;
+  const viewportTop = viewport?.offsetTop || 0;
+  const viewportWidth = viewport?.width || window.innerWidth;
+  const viewportHeight = viewport?.height || window.innerHeight;
+  textColorPalette.style.maxWidth = `${Math.max(0, viewportWidth - 16)}px`;
   const triggerRect = textColorPickerTrigger.getBoundingClientRect();
   const paletteRect = textColorPalette.getBoundingClientRect();
   const edge = 8;
   const gap = 6;
-  const below = window.innerHeight - triggerRect.bottom - gap - edge;
-  const above = triggerRect.top - gap - edge;
+  const below = viewportTop + viewportHeight - triggerRect.bottom - gap - edge;
+  const above = triggerRect.top - viewportTop - gap - edge;
   const openAbove = below < paletteRect.height && above > below;
   const available = Math.max(80, openAbove ? above : below);
-  const height = Math.min(paletteRect.height, available, window.innerHeight - edge * 2);
-  const left = Math.max(edge, Math.min(triggerRect.left, window.innerWidth - paletteRect.width - edge));
+  const height = Math.max(0, Math.min(paletteRect.height, available, viewportHeight - edge * 2));
+  const left = Math.max(
+    viewportLeft + edge,
+    Math.min(triggerRect.left, viewportLeft + viewportWidth - paletteRect.width - edge),
+  );
   textColorPalette.style.left = `${left}px`;
   textColorPalette.style.maxHeight = `${height}px`;
   textColorPalette.style.top = `${openAbove
-    ? Math.max(edge, triggerRect.top - height - gap)
-    : Math.min(triggerRect.bottom + gap, window.innerHeight - height - edge)}px`;
+    ? Math.max(viewportTop + edge, triggerRect.top - height - gap)
+    : Math.min(triggerRect.bottom + gap, viewportTop + viewportHeight - height - edge)}px`;
 }
 
 function closeTextColorPalette(restoreFocus = false) {
@@ -136,7 +145,7 @@ function closeTextColorPalette(restoreFocus = false) {
   if (restoreFocus) textColorPickerTrigger.focus();
 }
 
-function openTextColorPalette() {
+function openTextColorPalette(event) {
   if (!textColorPalette.hidden) {
     closeTextColorPalette();
     return;
@@ -145,7 +154,8 @@ function openTextColorPalette() {
   textColorPalette.hidden = false;
   textColorPickerTrigger.setAttribute("aria-expanded", "true");
   positionTextColorPalette();
-  resetTextColor.focus();
+  if (event.detail === 0) resetTextColor.focus();
+  window.requestAnimationFrame(positionTextColorPalette);
 }
 
 function selectTextColor(color) {
@@ -917,6 +927,8 @@ document.addEventListener("click", (event) => {
 });
 window.addEventListener("resize", positionTextColorPalette);
 window.addEventListener("scroll", positionTextColorPalette, true);
+window.visualViewport?.addEventListener("resize", positionTextColorPalette);
+window.visualViewport?.addEventListener("scroll", positionTextColorPalette);
 formatToolbar.querySelectorAll("[data-format-command]").forEach((button) => {
   button.addEventListener("pointerdown", (event) => event.preventDefault());
   button.addEventListener("click", () => applyToggleFormat(button.dataset.formatCommand));

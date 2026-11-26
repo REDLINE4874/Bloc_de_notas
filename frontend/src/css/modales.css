@@ -23,6 +23,9 @@
 .format-color-picker__current { width: 16px; height: 4px; background: var(--current-color, var(--text)); }
 .format-color-picker__trigger svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 .format-color-palette { position: fixed; z-index: 30; display: grid; width: min(350px, calc(100vw - 24px)); max-height: min(390px, calc(100vh - 16px)); gap: 0; overflow: auto; border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px 6px; background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+@supports (height: 100dvh) {
+  .format-color-palette { max-height: min(390px, calc(100dvh - 16px)); }
+}
 .format-color-palette[hidden] { display: none; }
 .format-color-palette__automatic { display: flex; min-height: 38px; align-items: center; gap: 9px; border: 0; border-bottom: 1px solid var(--line); padding: 0 5px; background: transparent; color: var(--text); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
 .format-color-palette__automatic:hover { background: var(--hover); }
