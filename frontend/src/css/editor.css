@@ -26,8 +26,7 @@
 .note-editor { display: flex; width: 100%; min-height: 0; flex: 1; flex-direction: column; align-self: stretch; margin: 0; border-radius: 0; padding: clamp(18px, 2.5vw, 40px); background: var(--surface); }
 .note-editor__toolbar { justify-content: space-between; align-items: flex-start; gap: 16px; }
 .note-editor__meta { display: grid; min-width: 0; flex: 1; grid-template-columns: max-content minmax(0, 1fr); column-gap: 12px; row-gap: 4px; align-items: baseline; }
-.note-date { color: var(--muted-strong); font-size: 12px; }
-:root[data-theme="dark"] .note-date { color: var(--accent); }
+.note-date { color: var(--icon-accent); font-size: 12px; }
 .note-actions { position: relative; align-self: flex-start; gap: 7px; }
 .note-title,.note-content { display: block; width: 100%; border: 0; outline: 0; background: transparent; color: var(--text); }
 .note-title { grid-row: 2; grid-column: 1 / -1; margin: 2px 0 0; padding: 0; font-size: clamp(26px, 4vw, 39px); font-weight: 700; letter-spacing: -.045em; }
