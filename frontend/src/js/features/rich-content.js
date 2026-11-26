@@ -1,3 +1,12 @@
+function ensureCodeBlockContinuation(codeBlock) {
+  const nextBlock = codeBlock.nextSibling;
+  if (nextBlock instanceof HTMLElement && ["DIV", "P"].includes(nextBlock.tagName)) return nextBlock;
+  const continuation = document.createElement("div");
+  continuation.append(document.createElement("br"));
+  codeBlock.after(continuation);
+  return continuation;
+}
+
 function sanitizeNoteContent(html) {
   const root = document.createElement("div");
   root.innerHTML = String(html ?? "");
@@ -58,6 +67,7 @@ function sanitizeNoteContent(html) {
     }
     pre.dataset.language = code.dataset.language;
   });
+  root.querySelectorAll("pre[data-language]").forEach(ensureCodeBlockContinuation);
   return root.innerHTML;
 }
 
@@ -420,6 +430,65 @@ if (!("CommandEvent" in window)) {
   });
 }
 
+function getCodeUnderlineRanges(code) {
+  const ranges = [];
+  const walker = document.createTreeWalker(code, NodeFilter.SHOW_TEXT);
+  let offset = 0;
+  while (walker.nextNode()) {
+    const textNode = walker.currentNode;
+    const length = textNode.textContent.length;
+    let ancestor = textNode.parentElement;
+    while (ancestor && ancestor !== code && ancestor.tagName !== "U") {
+      ancestor = ancestor.parentElement;
+    }
+    if (ancestor?.tagName === "U" && length) {
+      const previousRange = ranges[ranges.length - 1];
+      if (previousRange?.end === offset) previousRange.end += length;
+      else ranges.push({ start: offset, end: offset + length });
+    }
+    offset += length;
+  }
+  return ranges;
+}
+
+function applyCodeUnderlineRanges(fragment, ranges) {
+  if (!ranges.length) return;
+  const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_TEXT);
+  const textNodes = [];
+  while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+  let offset = 0;
+  let rangeIndex = 0;
+  textNodes.forEach((textNode) => {
+    const text = textNode.textContent;
+    const textEnd = offset + text.length;
+    const replacement = document.createDocumentFragment();
+    let cursor = 0;
+    let wasUnderlined = false;
+    while (rangeIndex < ranges.length && ranges[rangeIndex].end <= offset) rangeIndex += 1;
+    while (rangeIndex < ranges.length && ranges[rangeIndex].start < textEnd) {
+      const { start, end } = ranges[rangeIndex];
+      const segmentStart = Math.max(start, offset);
+      const segmentEnd = Math.min(end, textEnd);
+      const localStart = segmentStart - offset;
+      const localEnd = segmentEnd - offset;
+      if (localStart > cursor) replacement.append(document.createTextNode(text.slice(cursor, localStart)));
+      const underline = document.createElement("u");
+      underline.textContent = text.slice(Math.max(cursor, localStart), localEnd);
+      replacement.append(underline);
+      cursor = localEnd;
+      wasUnderlined = true;
+      if (end <= textEnd) rangeIndex += 1;
+      else break;
+    }
+    if (wasUnderlined) {
+      if (cursor < text.length) replacement.append(document.createTextNode(text.slice(cursor)));
+      textNode.replaceWith(replacement);
+    }
+    offset = textEnd;
+  });
+}
+
 function updateSyntaxHighlights() {
   if (noteFindPanel && !noteFindPanel.hidden) {
     updateCodeBlockControls();
@@ -437,8 +506,10 @@ function updateSyntaxHighlights() {
       detectedCodeLanguages.delete(sourceCode);
     }
     if (code.dataset.language === "plaintext") return;
+    const underlineRanges = getCodeUnderlineRanges(sourceCode);
     const highlighted = getHighlightedFragment(code.textContent, code.dataset.language);
     if (highlighted) {
+      applyCodeUnderlineRanges(highlighted.fragment, underlineRanges);
       code.replaceChildren(highlighted.fragment);
       if (sourceCode.dataset.language === "auto") {
         detectedCodeLanguages.set(sourceCode, {

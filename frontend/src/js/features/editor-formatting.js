@@ -300,8 +300,16 @@ function getFormattingRange() {
 
 function saveEditorSelection() {
   savedEditorSelection = getEditorSelectionRange();
+  updateCodeCaretStyle(savedEditorSelection);
   updateFormatToolbarState();
   if (selectionToolbarMode) positionSelectionFormatToolbar();
+}
+
+function updateCodeCaretStyle(range) {
+  const startNode = range?.startContainer;
+  const startElement = startNode instanceof Element ? startNode : startNode?.parentElement;
+  const codeBlock = range?.collapsed ? startElement?.closest('pre[data-language]') : null;
+  noteContent.classList.toggle("is-caret-in-code", Boolean(codeBlock && noteContent.contains(codeBlock)));
 }
 
 function removeInlineStyle(fragment, property) {
@@ -386,6 +394,7 @@ function insertEmptyCodeBlockAtRange(range, language) {
 }
 
 function selectCodeBlock(range, pre) {
+  ensureCodeBlockContinuation(pre);
   const code = pre.querySelector("code");
   range.selectNodeContents(code);
   const selection = window.getSelection();
@@ -493,8 +502,11 @@ function applyInlineStyle(property, value) {
 }
 
 function applyToggleFormat(command) {
-  restoreEditorSelection();
-  const range = getFormattingRange();
+  let range = getEditorSelectionRange();
+  if (!range || range.collapsed) {
+    restoreEditorSelection();
+    range = getFormattingRange();
+  }
   if (range.collapsed) return;
   const tagNames = command === "bold" ? ["B", "STRONG"] : command === "italic" ? ["I", "EM"] : ["U"];
   const alreadyFormatted = isRangeFormatted(range, tagNames);
@@ -970,7 +982,11 @@ window.addEventListener("scroll", positionTextColorPalette, true);
 window.visualViewport?.addEventListener("resize", positionTextColorPalette);
 window.visualViewport?.addEventListener("scroll", positionTextColorPalette);
 formatToolbar.querySelectorAll("[data-format-command]").forEach((button) => {
-  button.addEventListener("pointerdown", (event) => event.preventDefault());
+  button.addEventListener("pointerdown", (event) => {
+    const range = getEditorSelectionRange();
+    if (range && !range.collapsed) savedEditorSelection = range.cloneRange();
+    event.preventDefault();
+  });
   button.addEventListener("click", () => applyToggleFormat(button.dataset.formatCommand));
 });
 applyCodeFormat.addEventListener("pointerdown", (event) => event.preventDefault());
@@ -1097,6 +1113,7 @@ fontSizeDialog.addEventListener("cancel", (event) => {
 });
 document.addEventListener("selectionchange", () => {
   const range = getEditorSelectionRange();
+  updateCodeCaretStyle(range);
   if (range && !selectionToolbarDismissed) savedEditorSelection = range.cloneRange();
   else if (!range && selectionToolbarDismissed) savedEditorSelection = null;
   if (fontSizeDialog.open && selectionToolbarMode) {

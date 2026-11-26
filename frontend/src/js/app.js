@@ -120,6 +120,26 @@ if (!supabaseReady) {
       const codeBlock = startElement?.closest('pre[data-language]');
       if (codeBlock && noteContent.contains(codeBlock)) {
         event.preventDefault();
+        const code = codeBlock.querySelector("code[data-language]");
+        let isAtCodeEnd = false;
+        if (range.collapsed && !event.shiftKey && code?.contains(range.startContainer)) {
+          const textAfterCaret = document.createRange();
+          textAfterCaret.selectNodeContents(code);
+          textAfterCaret.setStart(range.startContainer, range.startOffset);
+          isAtCodeEnd = !textAfterCaret.toString();
+        }
+        if (isAtCodeEnd) {
+          const nextBlock = ensureCodeBlockContinuation(codeBlock);
+          const exitRange = document.createRange();
+          exitRange.selectNodeContents(nextBlock);
+          exitRange.collapse(true);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(exitRange);
+          saveEditorSelection();
+          noteContent.dispatchEvent(new Event("input", { bubbles: true }));
+          return;
+        }
         if (readNoteContentText().length >= NOTE_MAX_LENGTH && range.collapsed) return;
         const selection = window.getSelection();
         range.deleteContents();
