@@ -273,6 +273,20 @@ function moveNoteFindMatch(direction) {
 
 async function handleGlobalKeydown(event) {
   if (
+    (event.ctrlKey || event.metaKey)
+    && !event.altKey
+    && event.key.toLowerCase() === "z"
+    && activeSection === "editor"
+    && !shareDialog.open
+    && !confirmDialog.open
+  ) {
+    event.preventDefault();
+    if (event.shiftKey) redoNoteHistory();
+    else undoNoteHistory();
+    return;
+  }
+
+  if (
     event.key === "F5"
     && !event.ctrlKey
     && !event.metaKey
@@ -292,18 +306,12 @@ async function handleGlobalKeydown(event) {
     (event.ctrlKey || event.metaKey)
     && !event.altKey
     && event.key.toLowerCase() === "y"
-    && !noteFindPanel.hidden
     && activeSection === "editor"
     && !shareDialog.open
     && !confirmDialog.open
   ) {
-    const focusedElement = document.activeElement;
-    const editTarget = focusedElement === noteTitle ? noteTitle : noteContent;
-    if (editTarget.disabled) return;
     event.preventDefault();
-    editTarget.focus();
-    document.execCommand("redo");
-    if (focusedElement !== editTarget && focusedElement instanceof HTMLElement) focusedElement.focus();
+    redoNoteHistory();
     return;
   }
 

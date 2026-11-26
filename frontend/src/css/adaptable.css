@@ -9,7 +9,7 @@
   .note-tabbar__label { display: none; }
   .note-tab-item { flex-basis: 122px; }
   .note-actions { gap: 3px; }
-  .note-actions .button { min-height: 34px; padding-inline: 9px; font-size: 11px; }
+  .note-actions .button { min-height: 34px; padding-inline: 9px; font-size: 12px; }
   .note-title { margin-top: 10px; }
 }
 
@@ -18,7 +18,7 @@
   .app-header { padding: 10px 12px 0; }
   .app-header__top { gap: 6px; }
   .app-header__controls { gap: 4px; }
-  .install-button { min-height: 32px; padding-inline: 9px; font-size: 11px; }
+  .install-button { min-height: 32px; padding-inline: 9px; font-size: 12px; }
   .note-editor__meta { flex: 1 1 100%; }
   .note-actions { margin-left: auto; }
   .theme-toggle { min-height: 28px; }
@@ -31,23 +31,23 @@
   .note-tabbar__content { gap: 4px; }
   .note-tab-item { min-width: 94px; min-height: 30px; flex-basis: 108px; }
   .note-tab { padding-inline: 7px; }
-  .note-tab__title { font-size: 10px; }
-  .note-tab__meta { font-size: 8px; }
+  .note-tab__title { font-size: 12px; }
+  .note-tab__meta { font-size: 12px; }
   .note-tab__close { width: 23px; flex-basis: 23px; opacity: 1; }
   .tab-scroll { width: 28px; height: 30px; flex-basis: 28px; }
   .tab-create { width: 30px; height: 30px; margin-inline: 0 2px; }
   .tab-history { width: 28px; height: 30px; }
   .workspace { padding: 8px 0; }
   .note-editor { margin: 0; border-radius: 0; padding: 16px 13px; }
-  .note-date { font-size: 10px; }
-  .note-actions .button { min-height: 32px; padding-inline: 7px; font-size: 10px; }
+  .note-date { font-size: 12px; }
+  .note-actions .button { min-height: 32px; padding-inline: 7px; font-size: 12px; }
   .note-content-wrap { margin-top: 12px; }
   .format-dialog { padding: 18px; }
   .format-toolbar { flex-wrap: wrap; }
   .format-toolbar__family { width: min(190px, 52vw); }
   .format-color-picker__trigger { min-height: 44px; }
   .note-find { top: 8px; right: 12px; width: calc(100vw - 24px); }
-  .note-find__count { min-width: 72px; font-size: 10px; }
+  .note-find__count { min-width: 72px; font-size: 12px; }
 }
 
 @media (hover: none) {

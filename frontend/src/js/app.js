@@ -84,7 +84,10 @@ if (!supabaseReady) {
   document.getElementById("restoreDraft").addEventListener("click", restoreDraft);
   document.getElementById("discardDraft").addEventListener("click", discardDraft);
   document.getElementById("cancelShare").addEventListener("click", () => shareDialog.close());
-  noteTitle.addEventListener("input", scheduleNoteSave);
+  noteTitle.addEventListener("input", () => {
+    recordNoteHistoryChange("typing");
+    scheduleNoteSave();
+  });
   noteTitle.addEventListener("focus", () => {
     lastEditorInput = noteTitle;
   });
@@ -169,11 +172,25 @@ if (!supabaseReady) {
     saveEditorSelection();
     noteContent.dispatchEvent(new Event("input", { bubbles: true }));
   });
-  noteContent.addEventListener("input", () => {
+  noteContent.addEventListener("input", (event) => {
     if (getEditorTextLength() > NOTE_MAX_LENGTH) {
       trimEditorContent(NOTE_MAX_LENGTH);
       setGlobalStatus("El contenido de la nota admite hasta 20 000 caracteres.", true);
     }
+    const typingInputTypes = new Set([
+      "insertText",
+      "insertCompositionText",
+      "deleteContentBackward",
+      "deleteContentForward",
+      "deleteWordBackward",
+      "deleteWordForward",
+      "deleteSoftLineBackward",
+      "deleteSoftLineForward",
+    ]);
+    const kind = event instanceof InputEvent && typingInputTypes.has(event.inputType)
+      ? "typing"
+      : "action";
+    recordNoteHistoryChange(kind);
     if (!fontSizeDialog.open) scheduleNoteSave();
     if (!noteFindPanel.hidden) {
       noteFindCurrent = 0;

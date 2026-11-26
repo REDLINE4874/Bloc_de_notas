@@ -1177,7 +1177,7 @@ initializeShareSelect("fontFamilySelect", "Predeterminada", [
   { value: NOTE_FONT_FAMILIES[6], label: "Courier New" },
 ], (value) => applyInlineStyle("font-family", value));
 initializeShareSelect("fontSizeSelect", "16", [
-  "8px", "9px", "10px", "11px", "12px", "13px", "14px", "16px",
+  "12px", "13px", "14px", "16px",
   "18px", "20px", "22px", "24px", "26px", "28px", "32px", "36px", "48px", "72px",
 ].map((value) => ({ value, label: value.slice(0, -2) })), (value) => applyInlineStyle("font-size", value));
 initializeShareSelect("shareUsername", "Selecciona un usuario", []);

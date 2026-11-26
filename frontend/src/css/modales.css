@@ -9,7 +9,7 @@
 .format-toolbar { display: flex; min-width: 0; flex-wrap: wrap; align-items: flex-end; gap: 10px; overflow: visible; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--surface); }
 .format-toolbar__group { display: flex; min-width: 0; max-width: 100%; flex: 0 0 auto; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
 .format-toolbar__field { display: grid; min-width: 0; gap: 5px; }
-.format-toolbar__field-label { color: var(--muted-strong); font-size: 11px; font-weight: 650; line-height: 1.2; }
+.format-toolbar__field-label { color: var(--muted-strong); font-size: 12px; font-weight: 650; line-height: 1.2; }
 .format-toolbar .share-select { flex: 0 0 auto; }
 .format-toolbar .share-select__trigger { min-height: 34px; border-radius: 5px; padding: 0 7px; background: var(--surface); font-size: 13px; }
 .format-toolbar__family { width: min(220px, 48vw); }
@@ -118,9 +118,9 @@
 .notes-library-item__delete:hover { background: var(--surface); color: var(--danger); }
 .notes-library-item__title,.notes-library-item__meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .notes-library-item__title { font-size: 13px; font-weight: 650; }
-.notes-library-item__new { width: fit-content; border-radius: 999px; padding: 2px 7px; background: var(--accent-soft); color: var(--accent); font-size: 10px; font-weight: 700; line-height: 1.3; }
-.notes-library-item__preview { overflow: hidden; color: var(--muted-strong); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-.notes-library-item__meta,.notes-library-empty { color: var(--muted-strong); font-size: 11px; }
+.notes-library-item__new { width: fit-content; border-radius: 999px; padding: 2px 7px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 700; line-height: 1.3; }
+.notes-library-item__preview { overflow: hidden; color: var(--muted-strong); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.notes-library-item__meta,.notes-library-empty { color: var(--muted-strong); font-size: 12px; }
 .notes-library-empty { margin: 22px 0 0; color: var(--muted-strong); font-size: 13px; }
 .share-form { display: grid; gap: 9px; }
 .share-select { position: relative; width: 100%; }

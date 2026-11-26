@@ -20,11 +20,117 @@ function getNoteSharingStatus(note) {
   return usernames.length ? `· Compartida con ${usernames.join(", ")}` : "";
 }
 
+var noteHistoryById = new Map();
+var applyingNoteHistory = false;
+var NOTE_HISTORY_LIMIT = 100;
+var NOTE_HISTORY_GROUP_MS = 700;
+
+function getNoteHistorySnapshot() {
+  return {
+    title: noteTitle.value,
+    content: noteContent.innerHTML,
+  };
+}
+
+function snapshotsMatch(left, right) {
+  return left.title === right.title && left.content === right.content;
+}
+
+function resetNoteHistory(noteId) {
+  if (!noteId) {
+    noteHistoryById.clear();
+    updateNoteHistoryButtons();
+    return;
+  }
+  noteHistoryById.set(noteId, {
+    past: [],
+    future: [],
+    baseline: getNoteHistorySnapshot(),
+    lastKind: null,
+    lastTime: 0,
+  });
+  updateNoteHistoryButtons();
+}
+
+function updateNoteHistoryButtons() {
+  const editable = Boolean(currentNote() && canEditNote(currentNote()));
+  const entry = noteHistoryById.get(activeNoteId);
+  undoNote.disabled = !editable || !entry?.past.length;
+  redoNote.disabled = !editable || !entry?.future.length;
+}
+
+function recordNoteHistoryChange(kind = "action") {
+  if (applyingNoteHistory || !activeNoteId) return;
+  let entry = noteHistoryById.get(activeNoteId);
+  if (!entry) {
+    entry = {
+      past: [],
+      future: [],
+      baseline: getNoteHistorySnapshot(),
+      lastKind: null,
+      lastTime: 0,
+    };
+    noteHistoryById.set(activeNoteId, entry);
+  }
+
+  const current = getNoteHistorySnapshot();
+  if (snapshotsMatch(entry.baseline, current)) return;
+  const now = Date.now();
+  const canGroup = kind === "typing"
+    && entry.lastKind === "typing"
+    && now - entry.lastTime <= NOTE_HISTORY_GROUP_MS;
+
+  if (!canGroup) entry.past.push(entry.baseline);
+  if (entry.past.length > NOTE_HISTORY_LIMIT) entry.past.shift();
+  entry.future = [];
+  entry.baseline = current;
+  entry.lastKind = kind;
+  entry.lastTime = now;
+  updateNoteHistoryButtons();
+}
+
+function applyNoteHistorySnapshot(snapshot) {
+  applyingNoteHistory = true;
+  noteTitle.value = snapshot.title;
+  noteContent.innerHTML = sanitizeNoteContent(snapshot.content);
+  updateNoteTextContrast();
+  saveEditorSelection();
+  applyingNoteHistory = false;
+  noteTitle.dispatchEvent(new Event("input", { bubbles: true }));
+  noteContent.dispatchEvent(new Event("input", { bubbles: true }));
+  scheduleNoteSave();
+  updateNoteHistoryButtons();
+}
+
+function undoNoteHistory() {
+  const entry = noteHistoryById.get(activeNoteId);
+  if (!entry?.past.length) return false;
+  const current = getNoteHistorySnapshot();
+  const previous = entry.past.pop();
+  entry.future.push(current);
+  entry.baseline = previous;
+  entry.lastKind = null;
+  applyNoteHistorySnapshot(previous);
+  updateNoteHistoryButtons();
+  return true;
+}
+
+function redoNoteHistory() {
+  const entry = noteHistoryById.get(activeNoteId);
+  if (!entry?.future.length) return false;
+  const current = getNoteHistorySnapshot();
+  const next = entry.future.pop();
+  entry.past.push(current);
+  entry.baseline = next;
+  entry.lastKind = null;
+  applyNoteHistorySnapshot(next);
+  updateNoteHistoryButtons();
+  return true;
+}
+
 function renderEditor() {
   const note = currentNote();
   const editable = Boolean(note && canEditNote(note));
-  undoNote.disabled = !editable;
-  redoNote.disabled = !editable;
   if (note) markSharedNoteAsRead(note);
   fontSizeOption.setAttribute("aria-disabled", String(!note || !canEditNote(note)));
   emptyState.hidden = Boolean(note);
@@ -38,12 +144,15 @@ function renderEditor() {
     noteContentHighlights.hidden = true;
     noteContent.classList.remove("is-find-open");
     noteContent.classList.remove("is-syntax-highlighted");
+    updateNoteHistoryButtons();
     return;
   }
 
   const owned = isNoteOwner(note);
   noteTitle.value = note.title || "";
   setNoteContent(note.content || "");
+  resetNoteHistory(note.id);
+  updateNoteHistoryButtons();
   noteTitle.disabled = !editable;
   noteContent.contentEditable = String(editable);
   noteContent.setAttribute("aria-readonly", String(!editable));
@@ -76,6 +185,17 @@ function renderEditor() {
 function runNoteHistoryCommand(command, button) {
   const note = currentNote();
   if (!note || !canEditNote(note) || activeSection !== "editor") return;
+
+  if (command === "undo" && undoNoteHistory()) {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    button.focus();
+    return;
+  }
+  if (command === "redo" && redoNoteHistory()) {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    button.focus();
+    return;
+  }
 
   const focusedElement = document.activeElement;
   const editTarget = focusedElement === noteTitle || focusedElement === noteContent
@@ -192,6 +312,7 @@ function restoreDraft() {
   if (!note || !draft) return;
   noteTitle.value = draft.title;
   setNoteContent(draft.content);
+  resetNoteHistory(note.id);
   draftNotice.hidden = true;
   scheduleNoteSave();
 }
@@ -203,6 +324,7 @@ function discardDraft() {
   draftNotice.hidden = true;
   noteTitle.value = note.title || "";
   setNoteContent(note.content || "");
+  resetNoteHistory(note.id);
   setSaveStatus("Borrador local descartado");
 }
 

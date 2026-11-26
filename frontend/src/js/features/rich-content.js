@@ -48,7 +48,9 @@ function sanitizeNoteContent(html) {
         const safeFamily = NOTE_FONT_FAMILIES.find((family) => normalizeFont(family) === normalizeFont(fontFamily));
         if (safeFamily) node.style.fontFamily = safeFamily;
       }
-      if (/^(?:[8-9]|[1-6]\d|7[0-2])px$/.test(fontSize)) node.style.fontSize = fontSize;
+      if (/^(?:[8-9]|[1-6]\d|7[0-2])px$/.test(fontSize)) {
+        node.style.fontSize = `${Math.max(12, Number.parseInt(fontSize, 10))}px`;
+      }
       if (/^#[0-9a-f]{6}$/i.test(textColor)
         || /^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$/i.test(textColor)) {
         node.style.color = textColor;
