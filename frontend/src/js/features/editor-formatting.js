@@ -20,6 +20,7 @@ let contextMenuPointer = null;
 let selectionToolbarMode = false;
 let selectionPointerActive = false;
 let selectionToolbarSelectionTimeout = null;
+let selectionToolbarDismissed = false;
 
 const NOTE_THEME_COLORS = [
   { label: "Blanco", value: "#FFFFFF" },
@@ -286,15 +287,15 @@ function restoreEditorSelection(range = savedEditorSelection) {
 }
 
 function getFormattingRange() {
+  const activeRange = getEditorSelectionRange();
   const savedRange = savedEditorSelection
     && noteContent.contains(savedEditorSelection.startContainer)
     && noteContent.contains(savedEditorSelection.endContainer)
     ? savedEditorSelection.cloneRange()
     : null;
-  const range = getEditorSelectionRange() || savedRange || document.createRange();
-  if (!range.collapsed) return range;
-  range.selectNodeContents(noteContent);
-  return range;
+  if (activeRange && !activeRange.collapsed) return activeRange;
+  if (savedRange && !savedRange.collapsed) return savedRange;
+  return activeRange || savedRange || document.createRange();
 }
 
 function saveEditorSelection() {
@@ -632,6 +633,7 @@ function openFormatDialog(selectionToolbar = false) {
     && noteContent.contains(savedEditorSelection.endContainer);
   pendingEditorSelection = activeSelection || (savedSelectionIsActive ? savedEditorSelection.cloneRange() : null);
   savedEditorSelection = pendingEditorSelection?.cloneRange() || null;
+  if (selectionToolbar) selectionToolbarDismissed = false;
   fontSizeOption.setAttribute("aria-expanded", "false");
   settingsMenu.hidden = true;
   settingsButton.setAttribute("aria-expanded", "false");
@@ -660,7 +662,8 @@ function canEditCurrentNoteContent() {
 
 function openSelectionFormatToolbar() {
   const range = getEditorSelectionRange();
-  if (activeSection !== "editor"
+  if (selectionToolbarDismissed
+    || activeSection !== "editor"
     || !canEditCurrentNoteContent()
     || !range
     || range.collapsed
@@ -848,7 +851,8 @@ function openSelectedTextContextMenu(event) {
 
 noteContent.addEventListener("pointerdown", () => {
   selectionPointerActive = true;
-  if (selectionToolbarMode) closeFormatDialog(true, false);
+  if (selectionToolbarMode) dismissSelectionFormatToolbar();
+  else selectionToolbarDismissed = false;
 });
 document.addEventListener("pointerup", () => {
   selectionPointerActive = false;
@@ -860,9 +864,15 @@ noteContent.addEventListener("pointerup", (event) => {
   contextMenuPointer = event.button === 2 || event.ctrlKey
     ? { x: event.clientX, y: event.clientY, time: performance.now() }
     : null;
-  if (event.button === 0 && !event.ctrlKey) openSelectionFormatToolbar();
+  if (event.button === 0 && !event.ctrlKey) {
+    selectionToolbarDismissed = false;
+    openSelectionFormatToolbar();
+  }
 });
-noteContent.addEventListener("keyup", openSelectionFormatToolbar);
+noteContent.addEventListener("keyup", () => {
+  selectionToolbarDismissed = false;
+  openSelectionFormatToolbar();
+});
 noteContent.addEventListener("contextmenu", openSelectedTextContextMenu);
 cutSelectedText.addEventListener("click", cutContextText);
 copySelectedText.addEventListener("click", copyContextText);
@@ -1064,27 +1074,42 @@ function closeFormatDialog(saveChanges, restoreEditorFocus = true) {
   }
 }
 
+function dismissSelectionFormatToolbar() {
+  if (!selectionToolbarMode) return;
+  selectionToolbarDismissed = true;
+  window.clearTimeout(selectionToolbarSelectionTimeout);
+  selectionToolbarSelectionTimeout = null;
+  const selection = window.getSelection();
+  const selectionIsInEditor = Boolean(getEditorSelectionRange());
+  closeFormatDialog(true, false);
+  savedEditorSelection = null;
+  if (selectionIsInEditor) selection?.removeAllRanges();
+}
+
 cancelFontSize.addEventListener("click", () => closeFormatDialog(false));
 confirmFontSize.addEventListener("click", () => closeFormatDialog(true));
 fontSizeDialog.addEventListener("cancel", (event) => {
   event.preventDefault();
-  closeFormatDialog(selectionToolbarMode);
+  if (selectionToolbarMode) dismissSelectionFormatToolbar();
+  else closeFormatDialog(false);
 });
 document.addEventListener("selectionchange", () => {
   const range = getEditorSelectionRange();
-  if (range) savedEditorSelection = range.cloneRange();
+  if (range && !selectionToolbarDismissed) savedEditorSelection = range.cloneRange();
+  else if (!range && selectionToolbarDismissed) savedEditorSelection = null;
   if (fontSizeDialog.open && selectionToolbarMode) {
     if (fontSizeDialog.contains(document.activeElement)) {
       updateFormatToolbarState();
       return;
     }
     if (!range || range.collapsed || !range.toString().trim()) {
-      closeFormatDialog(true, false);
+      dismissSelectionFormatToolbar();
       return;
     }
     positionSelectionFormatToolbar(range);
   }
   if (!fontSizeDialog.open
+    && !selectionToolbarDismissed
     && !selectionPointerActive
     && document.activeElement === noteContent
     && range
@@ -1096,12 +1121,12 @@ document.addEventListener("pointerdown", (event) => {
   if (!selectionToolbarMode
     || fontSizeDialog.contains(event.target)
     || noteContent.contains(event.target)) return;
-  closeFormatDialog(true, false);
+  dismissSelectionFormatToolbar();
 }, true);
 document.addEventListener("focusin", (event) => {
   if (selectionToolbarMode
     && !fontSizeDialog.contains(event.target)
-    && event.target !== noteContent) closeFormatDialog(true, false);
+    && event.target !== noteContent) dismissSelectionFormatToolbar();
 });
 window.addEventListener("resize", () => {
   if (selectionToolbarMode) positionSelectionFormatToolbar();

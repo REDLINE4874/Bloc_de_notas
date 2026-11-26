@@ -19,6 +19,7 @@
   --selected-text: #294f98;
   --line: #e8eaf0;
   --accent: #315fb7;
+  --icon-accent: #007ACC;
   --shared-note-accent: #007b67;
   --accent-soft: #e8eefb;
   --danger: #a33b43;
@@ -57,9 +58,10 @@
   --selected-text: var(--text-strong);
   --line: rgb(220 240 244 / 12%);
   --accent: #F5E642;
+  --icon-accent: var(--accent);
   --shared-note-accent: #63d7b6;
   --accent-soft: rgb(245 230 66 / 18%);
-  --danger: #ffb1c1;
+  --danger: #ff6b6b;
   --badge-bg: #F5E642;
   --badge-text: #292c35;
   --shadow: 0 16px 36px rgb(0 0 0 / 42%), 0 4px 12px rgb(0 0 0 / 30%);
@@ -79,9 +81,16 @@
 
 :root[data-theme="dark"] .button--primary { color: #000; }
 :root[data-theme="dark"] .button--primary:hover { background: #E4D52C; }
+:root svg { color: var(--icon-accent); }
+:root .material-symbols-outlined { color: var(--icon-accent); }
+:root .brand__icon svg { color: #363a45; }
+:root .action-icon-button--danger svg,
+:root .sign-out-button svg,
+:root .code-block-delete-button svg { color: var(--danger); }
 
 * { box-sizing: border-box; }
-::selection { background: #ffe66b; color: #29240f; }
+::selection { background: rgb(255 230 107 / 42%); color: inherit; }
+:root[data-theme="dark"] ::selection { background: rgb(245 230 66 / 34%); color: inherit; }
 body {
   width: 100%;
   min-height: 100vh;
