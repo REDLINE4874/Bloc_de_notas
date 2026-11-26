@@ -3,9 +3,10 @@ function setAuthStatus(message, isError = false) {
   authStatus.classList.toggle("is-error", isError);
 }
 
-function setSaveStatus(message, isError = false) {
+function setSaveStatus(message, isError = false, isSuccess = false) {
   saveStatus.textContent = message;
   saveStatus.classList.toggle("is-error", isError);
+  saveStatus.classList.toggle("is-success", isSuccess && !isError);
 }
 
 function setGlobalStatus(message, isError = false) {

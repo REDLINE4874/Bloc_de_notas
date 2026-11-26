@@ -134,7 +134,7 @@ function queueNoteSave(noteId, snapshot, revision) {
 
       if (noteRevisions.get(noteId) === revision) {
         removeLocalDraft(noteId);
-        if (activeNoteId === noteId) setSaveStatus("Guardado");
+        if (activeNoteId === noteId) setSaveStatus("Guardado", false, true);
       }
     } catch (error) {
       if (activeNoteId === noteId) {
@@ -313,7 +313,7 @@ async function createNote(title = "", content = "", successMessage = "Nota nueva
   renderLibrarySection();
   renderEditor();
   noteTitle.focus();
-  setSaveStatus(successMessage);
+  setSaveStatus(successMessage, false, true);
 }
 
 async function importTextFileContents(file) {
