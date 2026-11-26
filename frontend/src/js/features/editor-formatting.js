@@ -6,9 +6,188 @@ const copySelectedText = document.getElementById("copySelectedText");
 const pasteIntoNote = document.getElementById("pasteIntoNote");
 const insertCodeBlock = document.getElementById("insertCodeBlock");
 const formatSelectedText = document.getElementById("formatSelectedText");
+const textColorInput = document.getElementById("textColorInput");
+const resetTextColor = document.getElementById("resetTextColor");
+const textColorPicker = document.getElementById("textColorPicker");
+const textColorPickerTrigger = document.getElementById("textColorPickerTrigger");
+const textColorPalette = document.getElementById("textColorPalette");
+const textColorCurrentSwatch = document.getElementById("textColorCurrentSwatch");
+const themeColorGrid = document.getElementById("themeColorGrid");
+const standardColorGrid = document.getElementById("standardColorGrid");
 const noteContextMenuButtons = Array.from(noteContextMenuItems.querySelectorAll("button"));
 let contextMenuRange = null;
 let contextMenuPointer = null;
+let selectionToolbarMode = false;
+
+const NOTE_THEME_COLORS = [
+  { label: "Blanco", value: "#FFFFFF" },
+  { label: "Negro", value: "#000000" },
+  { label: "Gris claro", value: "#E7E6E6" },
+  { label: "Azul grisáceo", value: "#44546A" },
+  { label: "Azul claro", value: "#5B9BD5" },
+  { label: "Naranja", value: "#ED7D31" },
+  { label: "Gris", value: "#A5A5A5" },
+  { label: "Dorado", value: "#FFC000" },
+  { label: "Azul", value: "#4472C4" },
+  { label: "Verde", value: "#70AD47" },
+];
+const NOTE_STANDARD_COLORS = [
+  { label: "Rojo oscuro", value: "#C00000" },
+  { label: "Rojo", value: "#FF0000" },
+  { label: "Naranja", value: "#FFC000" },
+  { label: "Amarillo", value: "#FFFF00" },
+  { label: "Verde claro", value: "#92D050" },
+  { label: "Verde", value: "#00B050" },
+  { label: "Cian", value: "#00B0F0" },
+  { label: "Azul", value: "#0070C0" },
+  { label: "Azul oscuro", value: "#002060" },
+  { label: "Morado", value: "#7030A0" },
+];
+const NOTE_THEME_TINTS = [
+  { amount: 0.8, label: "80 % más claro" },
+  { amount: 0.6, label: "60 % más claro" },
+  { amount: 0.4, label: "40 % más claro" },
+  { amount: 0.2, label: "20 % más claro" },
+  { amount: 0.25, label: "25 % más oscuro", target: "#000000" },
+];
+
+function mixHexColors(source, target, amount) {
+  const mixed = [1, 3, 5].map((offset) => {
+    const sourceChannel = Number.parseInt(source.slice(offset, offset + 2), 16);
+    const targetChannel = Number.parseInt(target.slice(offset, offset + 2), 16);
+    return Math.round(sourceChannel + (targetChannel - sourceChannel) * amount)
+      .toString(16)
+      .padStart(2, "0");
+  });
+  return `#${mixed.join("")}`.toUpperCase();
+}
+
+function createTextColorGrid(grid, rows) {
+  grid.replaceChildren();
+  rows.forEach((colors) => {
+    const row = document.createElement("div");
+    row.setAttribute("role", "row");
+    colors.forEach(({ label, value }) => {
+      const swatch = document.createElement("button");
+      swatch.className = "format-color-swatch";
+      swatch.type = "button";
+      swatch.setAttribute("role", "gridcell");
+      swatch.setAttribute("aria-label", label);
+      swatch.setAttribute("aria-pressed", "false");
+      swatch.tabIndex = grid.childElementCount === 0 && row.childElementCount === 0 ? 0 : -1;
+      swatch.dataset.color = value;
+      swatch.style.setProperty("--swatch-color", value);
+      swatch.addEventListener("pointerdown", (event) => event.preventDefault());
+      swatch.addEventListener("click", () => selectTextColor(value));
+      row.append(swatch);
+    });
+    grid.append(row);
+  });
+}
+
+function normalizeColorToHex(color) {
+  const rgb = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+  if (rgb) {
+    return `#${rgb.slice(1, 4)
+      .map((channel) => Number(channel).toString(16).padStart(2, "0"))
+      .join("")}`.toUpperCase();
+  }
+  return /^#[0-9a-f]{6}$/i.test(color) ? color : "";
+}
+
+function getExplicitTextColor(range) {
+  if (!range) return "";
+  let element = range.startContainer instanceof Element
+    ? range.startContainer
+    : range.startContainer.parentElement;
+  while (element && element !== noteContent) {
+    if (element instanceof HTMLElement && element.style.color) {
+      return getComputedStyle(element).color;
+    }
+    element = element.parentElement;
+  }
+  return "";
+}
+
+function positionTextColorPalette() {
+  if (textColorPalette.hidden) return;
+  textColorPalette.style.removeProperty("max-height");
+  const triggerRect = textColorPickerTrigger.getBoundingClientRect();
+  const paletteRect = textColorPalette.getBoundingClientRect();
+  const edge = 8;
+  const gap = 6;
+  const below = window.innerHeight - triggerRect.bottom - gap - edge;
+  const above = triggerRect.top - gap - edge;
+  const openAbove = below < paletteRect.height && above > below;
+  const available = Math.max(80, openAbove ? above : below);
+  const height = Math.min(paletteRect.height, available, window.innerHeight - edge * 2);
+  const left = Math.max(edge, Math.min(triggerRect.left, window.innerWidth - paletteRect.width - edge));
+  textColorPalette.style.left = `${left}px`;
+  textColorPalette.style.maxHeight = `${height}px`;
+  textColorPalette.style.top = `${openAbove
+    ? Math.max(edge, triggerRect.top - height - gap)
+    : Math.min(triggerRect.bottom + gap, window.innerHeight - height - edge)}px`;
+}
+
+function closeTextColorPalette(restoreFocus = false) {
+  if (textColorPalette.hidden) return;
+  textColorPalette.hidden = true;
+  textColorPickerTrigger.setAttribute("aria-expanded", "false");
+  if (restoreFocus) textColorPickerTrigger.focus();
+}
+
+function openTextColorPalette() {
+  if (!textColorPalette.hidden) {
+    closeTextColorPalette();
+    return;
+  }
+  document.querySelectorAll("[data-share-select].is-open").forEach((root) => closeShareSelect(root));
+  textColorPalette.hidden = false;
+  textColorPickerTrigger.setAttribute("aria-expanded", "true");
+  positionTextColorPalette();
+  resetTextColor.focus();
+}
+
+function selectTextColor(color) {
+  applyInlineStyle("color", color);
+  closeTextColorPalette(true);
+}
+
+function navigateTextColorGrid(event) {
+  const grid = event.currentTarget;
+  const swatches = Array.from(grid.querySelectorAll(".format-color-swatch"));
+  const currentIndex = swatches.indexOf(event.target);
+  if (currentIndex < 0) return;
+
+  const columns = grid.querySelector('[role="row"]').childElementCount;
+  const rtl = getComputedStyle(grid).direction === "rtl";
+  let nextIndex;
+  if (event.key === "ArrowRight") nextIndex = currentIndex + (rtl ? -1 : 1);
+  else if (event.key === "ArrowLeft") nextIndex = currentIndex + (rtl ? 1 : -1);
+  else if (event.key === "ArrowDown") nextIndex = currentIndex + columns;
+  else if (event.key === "ArrowUp") nextIndex = currentIndex - columns;
+  else if (event.key === "Home") nextIndex = currentIndex - (currentIndex % columns);
+  else if (event.key === "End") nextIndex = Math.min(
+    currentIndex - (currentIndex % columns) + columns - 1,
+    swatches.length - 1,
+  );
+  else return;
+
+  if (nextIndex < 0 || nextIndex >= swatches.length) return;
+  event.preventDefault();
+  swatches[currentIndex].tabIndex = -1;
+  swatches[nextIndex].tabIndex = 0;
+  swatches[nextIndex].focus();
+}
+
+createTextColorGrid(themeColorGrid, [
+  NOTE_THEME_COLORS,
+  ...NOTE_THEME_TINTS.map(({ amount, label, target = "#FFFFFF" }) => NOTE_THEME_COLORS.map((color) => ({
+    label: `${color.label}, ${label}`,
+    value: mixHexColors(color.value, target, amount),
+  }))),
+]);
+createTextColorGrid(standardColorGrid, [NOTE_STANDARD_COLORS]);
 
 function getEditorSelectionRange() {
   const selection = window.getSelection();
@@ -109,6 +288,7 @@ function getFormattingRange() {
 function saveEditorSelection() {
   savedEditorSelection = getEditorSelectionRange();
   updateFormatToolbarState();
+  if (selectionToolbarMode) positionSelectionFormatToolbar();
 }
 
 function removeInlineStyle(fragment, property) {
@@ -376,6 +556,14 @@ function updateFormatToolbarState() {
   setShareSelectValue("fontFamilySelect", fontFamily);
   const size = style ? `${Math.round(parseFloat(style.fontSize))}px` : "";
   setShareSelectValue("fontSizeSelect", shareSelectHasOption("fontSizeSelect", size) ? size : "16px");
+  const explicitColor = normalizeColorToHex(getExplicitTextColor(range));
+  const color = explicitColor || normalizeColorToHex(style?.color || "") || "#252936";
+  textColorInput.value = color;
+  textColorCurrentSwatch.style.setProperty("--current-color", color);
+  resetTextColor.setAttribute("aria-pressed", String(!explicitColor));
+  document.querySelectorAll(".format-color-swatch").forEach((swatch) => {
+    swatch.setAttribute("aria-pressed", String(Boolean(explicitColor && swatch.dataset.color === explicitColor)));
+  });
   formatToolbar.querySelectorAll("[data-format-command]").forEach((button) => {
     let pressed = false;
     if (range && noteContent.contains(range.startContainer)) {
@@ -385,8 +573,43 @@ function updateFormatToolbarState() {
   });
 }
 
-function openFormatDialog() {
+function positionSelectionFormatToolbar(range = savedEditorSelection) {
+  if (!selectionToolbarMode || !fontSizeDialog.open || !range) return;
+  const selectionRect = range.getBoundingClientRect();
+  if (!selectionRect.width && !selectionRect.height) return;
+
+  fontSizeDialog.style.left = "0px";
+  fontSizeDialog.style.top = "0px";
+  const toolbarRect = fontSizeDialog.getBoundingClientRect();
+  const edge = 8;
+  const gap = 8;
+  const left = Math.max(
+    edge,
+    Math.min(
+      selectionRect.left + selectionRect.width / 2 - toolbarRect.width / 2,
+      window.innerWidth - toolbarRect.width - edge,
+    ),
+  );
+  const above = selectionRect.top - toolbarRect.height - gap;
+  const top = above >= edge
+    ? above
+    : Math.max(edge, Math.min(selectionRect.bottom + gap, window.innerHeight - toolbarRect.height - edge));
+
+  fontSizeDialog.style.left = `${left}px`;
+  fontSizeDialog.style.top = `${top}px`;
+}
+
+function openFormatDialog(selectionToolbar = false) {
   if (fontSizeOption.getAttribute("aria-disabled") === "true") return;
+  if (fontSizeDialog.open) {
+    if (selectionToolbarMode && !selectionToolbar) closeFormatDialog(true, false);
+    else if (selectionToolbarMode && selectionToolbar) {
+      savedEditorSelection = getEditorSelectionRange() || savedEditorSelection;
+      updateFormatToolbarState();
+      positionSelectionFormatToolbar();
+      return;
+    } else return;
+  }
   pendingFormatContent = noteContent.innerHTML;
   const activeSelection = getEditorSelectionRange();
   const savedSelectionIsActive = savedEditorSelection
@@ -397,14 +620,30 @@ function openFormatDialog() {
   fontSizeOption.setAttribute("aria-expanded", "false");
   settingsMenu.hidden = true;
   settingsButton.setAttribute("aria-expanded", "false");
-  fontSizeDialog.showModal();
+  selectionToolbarMode = selectionToolbar;
+  fontSizeDialog.classList.toggle("is-selection-toolbar", selectionToolbar);
+  fontSizeDialog.style.removeProperty("left");
+  fontSizeDialog.style.removeProperty("top");
+  if (selectionToolbar) fontSizeDialog.show();
+  else fontSizeDialog.showModal();
   updateFormatToolbarState();
-  document.getElementById("fontSizeSelectButton").focus();
+  if (selectionToolbar) positionSelectionFormatToolbar();
+  else document.getElementById("fontSizeSelectButton").focus();
 }
 
 function canEditCurrentNoteContent() {
   return noteContent.getAttribute("contenteditable") === "true"
     && fontSizeOption.getAttribute("aria-disabled") !== "true";
+}
+
+function openSelectionFormatToolbar() {
+  const range = getEditorSelectionRange();
+  if (activeSection !== "editor"
+    || !canEditCurrentNoteContent()
+    || !range
+    || range.collapsed
+    || !range.toString().trim()) return;
+  openFormatDialog(true);
 }
 
 function focusNoteContextMenuButton(button) {
@@ -524,6 +763,10 @@ async function pasteContextText() {
 function openSelectedTextContextMenu(event) {
   const pointer = contextMenuPointer;
   contextMenuPointer = null;
+  const pointerIsRecent = pointer
+    && performance.now() - pointer.time < 1000
+    && (event.button === 2 || event.ctrlKey);
+
   const selectionRange = getEditorSelectionRange();
   const selectedRange = selectionRange && !selectionRange.collapsed
     && getPlainTextFromEditorRange(selectionRange)
@@ -531,9 +774,6 @@ function openSelectedTextContextMenu(event) {
     : null;
   if (!canEditCurrentNoteContent() || fontSizeDialog.open) return;
 
-  const pointerIsRecent = pointer
-    && performance.now() - pointer.time < 1000
-    && (event.button === 2 || event.ctrlKey);
   const eventHasPoint = event.clientX !== 0 || event.clientY !== 0;
   const selectionRect = selectionRange?.getBoundingClientRect();
   const x = pointerIsRecent ? pointer.x : eventHasPoint ? event.clientX : selectionRect?.left || 0;
@@ -575,11 +815,16 @@ function openSelectedTextContextMenu(event) {
   if (firstEnabledButton) focusNoteContextMenuButton(firstEnabledButton);
 }
 
+noteContent.addEventListener("pointerdown", () => {
+  if (selectionToolbarMode) closeFormatDialog(true, false);
+});
 noteContent.addEventListener("pointerup", (event) => {
   contextMenuPointer = event.button === 2 || event.ctrlKey
     ? { x: event.clientX, y: event.clientY, time: performance.now() }
     : null;
+  if (event.button === 0 && !event.ctrlKey) openSelectionFormatToolbar();
 });
+noteContent.addEventListener("keyup", openSelectionFormatToolbar);
 noteContent.addEventListener("contextmenu", openSelectedTextContextMenu);
 cutSelectedText.addEventListener("click", cutContextText);
 copySelectedText.addEventListener("click", copyContextText);
@@ -648,7 +893,30 @@ if (!("focusGroup" in HTMLElement.prototype)) {
   });
 }
 
-fontSizeOption.addEventListener("click", openFormatDialog);
+fontSizeOption.addEventListener("click", () => openFormatDialog());
+textColorPickerTrigger.addEventListener("click", openTextColorPalette);
+resetTextColor.addEventListener("pointerdown", (event) => event.preventDefault());
+resetTextColor.addEventListener("click", () => selectTextColor(""));
+themeColorGrid.addEventListener("keydown", navigateTextColorGrid);
+standardColorGrid.addEventListener("keydown", navigateTextColorGrid);
+textColorInput.addEventListener("input", () => applyInlineStyle("color", textColorInput.value));
+textColorInput.addEventListener("change", () => closeTextColorPalette(true));
+textColorPalette.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  event.preventDefault();
+  event.stopPropagation();
+  closeTextColorPalette(true);
+});
+textColorPalette.addEventListener("focusout", () => {
+  window.setTimeout(() => {
+    if (!textColorPicker.contains(document.activeElement)) closeTextColorPalette();
+  });
+});
+document.addEventListener("click", (event) => {
+  if (!textColorPicker.contains(event.target)) closeTextColorPalette();
+});
+window.addEventListener("resize", positionTextColorPalette);
+window.addEventListener("scroll", positionTextColorPalette, true);
 formatToolbar.querySelectorAll("[data-format-command]").forEach((button) => {
   button.addEventListener("pointerdown", (event) => event.preventDefault());
   button.addEventListener("click", () => applyToggleFormat(button.dataset.formatCommand));
@@ -731,7 +999,8 @@ if (!("focusGroup" in HTMLElement.prototype)) {
   });
 }
 
-function closeFormatDialog(saveChanges) {
+function closeFormatDialog(saveChanges, restoreEditorFocus = true) {
+  closeTextColorPalette();
   const contentChanged = noteContent.innerHTML !== pendingFormatContent;
   const selectionToRestore = saveChanges ? savedEditorSelection : pendingEditorSelection;
   if (saveChanges && contentChanged) scheduleNoteSave();
@@ -742,11 +1011,15 @@ function closeFormatDialog(saveChanges) {
   pendingFormatContent = null;
   savedEditorSelection = selectionToRestore;
   pendingEditorSelection = null;
+  selectionToolbarMode = false;
+  fontSizeDialog.classList.remove("is-selection-toolbar");
+  fontSizeDialog.style.removeProperty("left");
+  fontSizeDialog.style.removeProperty("top");
   fontSizeDialog.close();
-  if (currentNote()) {
+  if (restoreEditorFocus && currentNote()) {
     noteContent.focus();
     restoreEditorSelection(savedEditorSelection);
-  } else {
+  } else if (restoreEditorFocus) {
     settingsButton.focus();
   }
 }
@@ -755,13 +1028,41 @@ cancelFontSize.addEventListener("click", () => closeFormatDialog(false));
 confirmFontSize.addEventListener("click", () => closeFormatDialog(true));
 fontSizeDialog.addEventListener("cancel", (event) => {
   event.preventDefault();
-  closeFormatDialog(false);
+  closeFormatDialog(selectionToolbarMode);
 });
 document.addEventListener("selectionchange", () => {
   const range = getEditorSelectionRange();
-  if (range) savedEditorSelection = range;
+  if (range) savedEditorSelection = range.cloneRange();
+  if (fontSizeDialog.open && selectionToolbarMode) {
+    if (fontSizeDialog.contains(document.activeElement)) {
+      updateFormatToolbarState();
+      return;
+    }
+    if (!range || range.collapsed || !range.toString().trim()) {
+      closeFormatDialog(true, false);
+      return;
+    }
+    positionSelectionFormatToolbar(range);
+  }
   if (fontSizeDialog.open) updateFormatToolbarState();
 });
+document.addEventListener("pointerdown", (event) => {
+  if (!selectionToolbarMode
+    || fontSizeDialog.contains(event.target)
+    || noteContent.contains(event.target)) return;
+  closeFormatDialog(true, false);
+}, true);
+document.addEventListener("focusin", (event) => {
+  if (selectionToolbarMode
+    && !fontSizeDialog.contains(event.target)
+    && event.target !== noteContent) closeFormatDialog(true, false);
+});
+window.addEventListener("resize", () => {
+  if (selectionToolbarMode) positionSelectionFormatToolbar();
+});
+window.addEventListener("scroll", () => {
+  if (selectionToolbarMode) positionSelectionFormatToolbar();
+}, true);
 findInNote.addEventListener("click", openNoteFind);
 document.addEventListener("click", (event) => {
   if (settingsMenu.hidden || event.target.closest(".settings-control")) return;

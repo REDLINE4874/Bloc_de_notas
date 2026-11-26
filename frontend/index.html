@@ -295,7 +295,7 @@
 
     <dialog class="format-dialog" id="fontSizeDialog" aria-labelledby="fontSizeDialogTitle" aria-describedby="formatDialogDescription">
       <h2 id="fontSizeDialogTitle">Formato de texto</h2>
-      <p class="format-dialog__intro" id="formatDialogDescription">Elige la fuente, el tamaño y el estilo del texto de tu nota.</p>
+      <p class="format-dialog__intro" id="formatDialogDescription">Elige la fuente, el tamaño, el estilo y el color del texto seleccionado.</p>
       <div class="format-toolbar" id="formatToolbar" role="toolbar" focusgroup="toolbar wrap" aria-label="Formato de texto" aria-controls="noteContent">
         <div class="format-toolbar__group" role="group" aria-label="Fuente y tamaño">
           <div class="format-toolbar__field">
@@ -327,6 +327,37 @@
             <button class="format-toolbar__button" type="button" data-format-command="bold" aria-label="Negrita" aria-pressed="false" title="Negrita"><strong>N</strong></button>
             <button class="format-toolbar__button format-toolbar__button--italic" type="button" data-format-command="italic" aria-label="Cursiva" aria-pressed="false" title="Cursiva">C</button>
             <button class="format-toolbar__button format-toolbar__button--underline" type="button" data-format-command="underline" aria-label="Subrayado" aria-pressed="false" title="Subrayado">S</button>
+          </div>
+        </div>
+        <div class="format-toolbar__field">
+          <span class="format-toolbar__field-label">Color de fuente</span>
+          <div class="format-color-picker" id="textColorPicker">
+            <button class="format-color-picker__trigger" id="textColorPickerTrigger" type="button" aria-label="Color de fuente" aria-expanded="false" aria-controls="textColorPalette">
+              <span class="format-color-picker__mark" aria-hidden="true">
+                <span class="format-color-picker__letter">A</span>
+                <span class="format-color-picker__current" id="textColorCurrentSwatch"></span>
+              </span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
+            <div class="format-color-palette" id="textColorPalette" role="group" aria-label="Colores de fuente" hidden>
+              <button class="format-color-palette__automatic" id="resetTextColor" type="button" aria-pressed="true">
+                <span class="format-color-palette__automatic-swatch" aria-hidden="true"></span>
+                <span>Automático</span>
+              </button>
+              <section class="format-color-palette__section" aria-labelledby="themeColorHeading">
+                <h3 class="format-color-palette__heading" id="themeColorHeading">Colores del tema</h3>
+                <div class="format-color-grid" id="themeColorGrid" role="grid" aria-label="Colores del tema"></div>
+              </section>
+              <section class="format-color-palette__section" aria-labelledby="standardColorHeading">
+                <h3 class="format-color-palette__heading" id="standardColorHeading">Colores estándar</h3>
+                <div class="format-color-grid" id="standardColorGrid" role="grid" aria-label="Colores estándar"></div>
+              </section>
+              <label class="format-color-palette__more" for="textColorInput">
+                <span class="material-symbols-outlined" aria-hidden="true">palette</span>
+                <span>Más colores...</span>
+                <input id="textColorInput" type="color" value="#252936" aria-label="Más colores" />
+              </label>
+            </div>
           </div>
         </div>
       </div>

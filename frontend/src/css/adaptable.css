@@ -45,6 +45,7 @@
   .format-dialog { padding: 18px; }
   .format-toolbar { flex-wrap: wrap; }
   .format-toolbar__family { width: min(190px, 52vw); }
+  .format-color-picker__trigger { min-height: 44px; }
   .note-find { top: 8px; right: 12px; width: calc(100vw - 24px); }
   .note-find__count { min-width: 72px; font-size: 10px; }
 }

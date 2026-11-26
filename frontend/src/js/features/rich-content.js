@@ -24,6 +24,7 @@ function sanitizeNoteContent(html) {
 
       const fontFamily = node.tagName === "SPAN" ? node.style.fontFamily : "";
       const fontSize = node.tagName === "SPAN" ? node.style.fontSize : "";
+      const textColor = node.tagName === "SPAN" ? node.style.color : "";
       const isPlainText = node.tagName === "SPAN" && node.getAttribute("data-language") === "plain";
       const storedLanguage = node.getAttribute("data-language");
       const codeLanguage = ["CODE", "PRE"].includes(node.tagName)
@@ -39,6 +40,10 @@ function sanitizeNoteContent(html) {
         if (safeFamily) node.style.fontFamily = safeFamily;
       }
       if (/^(?:[8-9]|[1-6]\d|7[0-2])px$/.test(fontSize)) node.style.fontSize = fontSize;
+      if (/^#[0-9a-f]{6}$/i.test(textColor)
+        || /^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$/i.test(textColor)) {
+        node.style.color = textColor;
+      }
       if (!node.getAttribute("style")) node.removeAttribute("style");
     });
   }
