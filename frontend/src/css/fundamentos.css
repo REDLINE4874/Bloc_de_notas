@@ -17,13 +17,14 @@
   --hover: rgb(60 60 60 / 8%);
   --selected: #BEBEBE;
   --selected-text: #3C3C3C;
+  --tab-active: #FFFFFF;
   --line: #646464;
-  --accent: #3C3C3C;
+  --accent: #000000;
   --accent-contrast: #FFFFFF;
-  --icon-accent: #3C3C3C;
-  --shared-note-accent: #3C3C3C;
-  --accent-soft: rgb(60 60 60 / 18%);
-  --ambient-accent: rgb(60 60 60 / 10%);
+  --icon-accent: #000000;
+  --shared-note-accent: #000000;
+  --accent-soft: rgb(0 0 0 / 18%);
+  --ambient-accent: rgb(0 0 0 / 10%);
   --danger: #8B252B;
   --success: #1D7135;
   --badge-bg: var(--accent);
@@ -44,6 +45,7 @@
   --search-highlight: rgb(60 60 60 / 8%);
   --search-highlight-current: rgb(60 60 60 / 16%);
   --search-decoration: rgb(60 60 60 / 35%);
+  --text-selection: rgb(60 60 60 / 8%);
 }
 
 :root[data-theme="dark"] {
@@ -62,6 +64,7 @@
   --hover: rgb(255 255 255 / 9%);
   --selected: #414141;
   --selected-text: #FFFFFF;
+  --tab-active: #414141;
   --line: rgb(255 255 255 / 42%);
   --accent: #D3A21D;
   --accent-contrast: #161616;
@@ -89,6 +92,8 @@
   --search-highlight: #D3A21D;
   --search-highlight-current: #F1D58A;
   --search-decoration: var(--accent);
+  --text-selection: #BEBEBE;
+  --text-selection-color: #000000;
 }
 
 :root svg { color: var(--icon-accent); }
@@ -99,7 +104,7 @@
 :root .code-block-delete-button svg { color: var(--danger); }
 
 * { box-sizing: border-box; }
-::selection { background: var(--search-highlight); color: inherit; }
+::selection { background: var(--text-selection); color: var(--text-selection-color, inherit); }
 body {
   width: 100%;
   min-height: 100vh;

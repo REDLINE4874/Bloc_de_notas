@@ -591,7 +591,9 @@ function updateFormatToolbarState() {
 
 function positionSelectionFormatToolbar(range = savedEditorSelection) {
   if (!selectionToolbarMode || !fontSizeDialog.open || !range) return;
-  const selectionRect = range.getBoundingClientRect();
+  const selectionStart = range.cloneRange();
+  selectionStart.collapse(true);
+  const selectionRect = selectionStart.getBoundingClientRect();
   if (!selectionRect.width && !selectionRect.height) return;
 
   fontSizeDialog.style.left = "0px";
