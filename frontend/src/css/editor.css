@@ -33,26 +33,26 @@
 .note-title { grid-row: 2; grid-column: 1 / -1; margin: 2px 0 0; padding: 0; font-size: clamp(26px, 4vw, 39px); font-weight: 700; letter-spacing: -.045em; }
 .note-title::placeholder { color: var(--placeholder); }
 .note-content-wrap {
-  --code-surface: #292929;
-  --code-control-surface: #303030;
-  --code-text: #F1F1F1;
-  --code-text-soft: #E5E5E5;
-  --code-selection: #BEBEBE;
-  --code-selection-text: #000000;
-  --code-muted: #C5C5C5;
-  --code-muted-strong: #A3A3A3;
-  --code-line: rgb(255 255 255 / 42%);
-  --code-hover: rgb(255 255 255 / 9%);
-  --code-accent: #D3A21D;
+  --code-surface: #23262E;
+  --code-control-surface: #2D3039;
+  --code-text: #D5CED9;
+  --code-text-soft: #D5CED9;
+  --code-selection: #746F77;
+  --code-selection-text: #D5CED9;
+  --code-muted: #8A8896;
+  --code-muted-strong: #676E95;
+  --code-line: rgb(213 206 217 / 16%);
+  --code-hover: rgb(213 206 217 / 10%);
+  --code-accent: #00E8C6;
   --code-danger: #ff6b6b;
-  --code-shadow: 0 16px 36px rgb(0 0 0 / 55%), 0 4px 12px rgb(0 0 0 / 35%);
-  --code-comment: #b8c3d1;
-  --code-keyword: #e3b4ff;
-  --code-string: #a2e8b4;
-  --code-number: #ffd09c;
-  --code-function: #acccff;
-  --code-variable: #ffb4c7;
-  --code-meta: #a5edf0;
+  --code-shadow: 0 16px 36px rgb(15 16 22 / 60%), 0 4px 12px rgb(15 16 22 / 40%);
+  --code-comment: rgb(160 161 167 / 80%);
+  --code-keyword: #C74DED;
+  --code-string: #96E072;
+  --code-number: #F39C12;
+  --code-function: #FFE66D;
+  --code-variable: #00E8C6;
+  --code-meta: #7CB7FF;
   position: relative;
   display: flex;
   min-height: 0;
@@ -67,21 +67,28 @@
 :where(.note-content,.note-content-highlights) > span:has(> div) { display: contents; }
 .note-content-highlights mark { border-radius: 2px; background: var(--search-highlight); color: inherit; text-decoration: underline; text-decoration-color: var(--search-decoration); text-decoration-thickness: 1px; text-underline-offset: 2px; }
 .note-content-highlights mark.is-current { background: var(--search-highlight-current); text-decoration-thickness: 2px; }
-.note-content-highlights pre[data-language] mark { background: #D3A21D; text-decoration-color: #D3A21D; }
-.note-content-highlights pre[data-language] mark.is-current { background: #F1D58A; }
+.note-content-highlights pre[data-language] mark { background: #C74DED; text-decoration-color: #C74DED; }
+.note-content-highlights pre[data-language] mark.is-current { background: #00E8C6; }
 .note-content-highlights .hljs-comment,.note-content-highlights .hljs-quote { color: var(--code-comment); font-style: italic; }
 .note-content-highlights .hljs-keyword,.note-content-highlights .hljs-selector-tag,.note-content-highlights .hljs-literal { color: var(--code-keyword); }
 .note-content-highlights .hljs-string,.note-content-highlights .hljs-doctag,.note-content-highlights .hljs-regexp { color: var(--code-string); }
-.note-content-highlights .hljs-number,.note-content-highlights .hljs-built_in,.note-content-highlights .hljs-type { color: var(--code-number); }
+.note-content-highlights .hljs-number,.note-content-highlights .hljs-literal { color: var(--code-number); }
+.note-content-highlights .hljs-regexp { color: #7CB7FF; }
+.note-content-highlights .hljs-built_in,.note-content-highlights .hljs-type { color: #F39C12; }
 .note-content-highlights .hljs-title,.note-content-highlights .hljs-function,.note-content-highlights .hljs-attr { color: var(--code-function); }
 .note-content-highlights .hljs-variable,.note-content-highlights .hljs-params,.note-content-highlights .hljs-property { color: var(--code-variable); }
+.note-content-highlights .hljs-keyword + .hljs-title,.note-content-highlights .hljs-keyword + .hljs-function { color: var(--code-function); }
+.note-content-highlights .hljs-operator { color: #EE5D43; }
 .note-content-highlights .hljs-meta,.note-content-highlights .hljs-symbol { color: var(--code-meta); }
-.note-content code,.note-content-highlights code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
+.note-content-highlights .hljs-tag,.note-content-highlights .hljs-name { color: #F92672; }
+.note-content-highlights .hljs-attribute,.note-content-highlights .hljs-section { color: #F39C12; }
+.note-content-highlights .hljs-template-variable,.note-content-highlights .hljs-subst { color: #00E8C6; }
+.note-content code,.note-content-highlights code { font-family: "Fira Code", "Cascadia Code", "SFMono-Regular", Consolas, monospace; font-variant-ligatures: contextual common-ligatures; }
 .note-content-highlights code u { text-decoration-line: underline; text-decoration-color: var(--code-accent); text-decoration-thickness: 2px; text-underline-offset: 2px; }
 .note-content pre[data-language] ::selection { background: var(--code-selection); color: var(--code-selection-text); -webkit-text-fill-color: var(--code-selection-text); text-decoration-color: var(--code-selection-text); }
 .note-content pre[data-language],.note-content-highlights pre[data-language] { position: relative; inline-size: 100%; min-inline-size: min(100%, 280px); max-inline-size: 100%; margin: 12px 0; border: 0; border-radius: 14px; background: var(--code-surface); color: var(--code-text); white-space: pre-wrap; overflow-wrap: anywhere; }
 .note-content:not(.is-syntax-highlighted) pre[data-language],.note-content-highlights pre[data-language] { color-scheme: dark; }
-.note-content pre[data-language] > code,.note-content-highlights pre[data-language] > code { display: block; min-block-size: calc(1.6em + 48px + 10px); margin: 0; border: 0; padding: 48px 14px 10px; background: transparent; color: var(--code-text); font-size: 12px; font-weight: 700; line-height: 1.6; white-space: inherit; overflow-wrap: inherit; }
+.note-content pre[data-language] > code,.note-content-highlights pre[data-language] > code { display: block; min-block-size: calc(1.6em + 48px + 10px); margin: 0; border: 0; padding: 48px 14px 10px; background: transparent; color: var(--code-text); font-size: 13px; font-weight: 500; line-height: 1.65; white-space: inherit; overflow-wrap: inherit; }
 .code-block-actions { position: absolute; z-index: 2; inset: 0; overflow: hidden; pointer-events: none; }
 .code-block-copy-control { position: absolute; top: var(--code-control-top); right: var(--code-control-right); display: flex; align-items: flex-start; gap: 6px; pointer-events: auto; }
 .code-block-copy-control[hidden] { display: none; }
