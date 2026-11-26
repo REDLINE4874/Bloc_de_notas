@@ -18,6 +18,8 @@ const noteContextMenuButtons = Array.from(noteContextMenuItems.querySelectorAll(
 let contextMenuRange = null;
 let contextMenuPointer = null;
 let selectionToolbarMode = false;
+let selectionPointerActive = false;
+let selectionToolbarSelectionTimeout = null;
 
 const NOTE_THEME_COLORS = [
   { label: "Blanco", value: "#FFFFFF" },
@@ -634,8 +636,15 @@ function openFormatDialog(selectionToolbar = false) {
   fontSizeDialog.classList.toggle("is-selection-toolbar", selectionToolbar);
   fontSizeDialog.style.removeProperty("left");
   fontSizeDialog.style.removeProperty("top");
-  if (selectionToolbar) fontSizeDialog.show();
-  else fontSizeDialog.showModal();
+  if (selectionToolbar) {
+    fontSizeDialog.show();
+    window.requestAnimationFrame(() => {
+      if (!fontSizeDialog.open || !selectionToolbarMode) return;
+      noteContent.focus({ preventScroll: true });
+      restoreEditorSelection(savedEditorSelection);
+      positionSelectionFormatToolbar();
+    });
+  } else fontSizeDialog.showModal();
   updateFormatToolbarState();
   if (selectionToolbar) positionSelectionFormatToolbar();
   else document.getElementById("fontSizeSelectButton").focus();
@@ -654,6 +663,15 @@ function openSelectionFormatToolbar() {
     || range.collapsed
     || !range.toString().trim()) return;
   openFormatDialog(true);
+}
+
+function scheduleSelectionFormatToolbar() {
+  window.clearTimeout(selectionToolbarSelectionTimeout);
+  selectionToolbarSelectionTimeout = window.setTimeout(() => {
+    selectionToolbarSelectionTimeout = null;
+    if (selectionPointerActive || document.activeElement !== noteContent) return;
+    openSelectionFormatToolbar();
+  }, 120);
 }
 
 function focusNoteContextMenuButton(button) {
@@ -826,8 +844,15 @@ function openSelectedTextContextMenu(event) {
 }
 
 noteContent.addEventListener("pointerdown", () => {
+  selectionPointerActive = true;
   if (selectionToolbarMode) closeFormatDialog(true, false);
 });
+document.addEventListener("pointerup", () => {
+  selectionPointerActive = false;
+}, true);
+document.addEventListener("pointercancel", () => {
+  selectionPointerActive = false;
+}, true);
 noteContent.addEventListener("pointerup", (event) => {
   contextMenuPointer = event.button === 2 || event.ctrlKey
     ? { x: event.clientX, y: event.clientY, time: performance.now() }
@@ -1056,6 +1081,12 @@ document.addEventListener("selectionchange", () => {
     }
     positionSelectionFormatToolbar(range);
   }
+  if (!fontSizeDialog.open
+    && !selectionPointerActive
+    && document.activeElement === noteContent
+    && range
+    && !range.collapsed
+    && range.toString().trim()) scheduleSelectionFormatToolbar();
   if (fontSizeDialog.open) updateFormatToolbarState();
 });
 document.addEventListener("pointerdown", (event) => {

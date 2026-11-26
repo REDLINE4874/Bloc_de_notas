@@ -287,9 +287,13 @@ if (!supabaseReady) {
   });
   document.getElementById("installApp").addEventListener("click", async () => {
     if (!installPrompt) return;
-    await installPrompt.prompt();
+    const promptEvent = installPrompt;
     installPrompt = null;
+    settingsMenu.hidden = true;
+    settingsButton.setAttribute("aria-expanded", "false");
+    settingsButton.focus();
     document.getElementById("installApp").hidden = true;
+    await promptEvent.prompt();
   });
   window.addEventListener("online", () => {
     loadedNotes.forEach((note) => {
