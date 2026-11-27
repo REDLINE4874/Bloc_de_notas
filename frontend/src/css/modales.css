@@ -6,7 +6,7 @@
 .format-dialog::backdrop { background: rgb(25 31 44 / 14%); overflow: hidden; overscroll-behavior: contain; }
 .format-dialog h2 { margin: 0 0 5px; font-size: 21px; letter-spacing: -.03em; }
 .format-dialog__intro { margin: 0 0 14px; color: var(--muted-strong); font-size: 12px; line-height: 1.45; }
-.format-toolbar { display: flex; min-width: 0; flex-wrap: wrap; align-items: flex-end; gap: 10px; overflow: visible; border: 0; border-radius: 8px; padding: 10px; background: var(--surface); }
+.format-toolbar { display: flex; min-width: 0; flex-wrap: wrap; align-items: flex-end; justify-content: center; gap: 10px; overflow: visible; border: 0; border-radius: 8px; padding: 10px; background: var(--surface); }
 .format-toolbar__group { display: flex; min-width: 0; max-width: 100%; flex: 0 0 auto; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
 .format-toolbar__field { display: grid; min-width: 0; gap: 5px; }
 .format-toolbar__field-label { color: var(--muted-strong); font-size: 12px; font-weight: 650; line-height: 1.2; }
