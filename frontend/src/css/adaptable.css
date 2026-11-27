@@ -16,7 +16,7 @@
   .note-actions .floating-label { left: auto; right: 0; transform: translateY(-3px); }
   .note-actions .action-icon-button:hover .floating-label,
   .note-actions .action-icon-button:focus-visible .floating-label { transform: translateY(0); }
-  .workspace { padding: 10px; }
+  .workspace { padding: 10px 0 0; }
   .note-tabbar { gap: 8px; }
   .note-tabbar__label { display: none; }
   .note-tab-item { flex-basis: 122px; }
@@ -38,7 +38,7 @@
   .account-avatar { width: 27px; height: 27px; }
   .account-popover { min-width: 120px; }
   .note-tabbar { min-height: 40px; padding-top: 6px; }
-  .note-tabbar-shell { margin-inline: 16px; padding-inline: 8px; }
+  .note-tabbar-shell { margin-inline: 0; padding-inline: 16px; }
   .notes-list { scrollbar-width: none; }
   .notes-list::-webkit-scrollbar { display: none; }
   .note-tabbar__content { gap: 4px; }
@@ -50,7 +50,7 @@
   .tab-scroll { width: 28px; height: 30px; flex-basis: 28px; }
   .tab-create { width: 30px; height: 30px; margin-inline: 0 2px; }
   .tab-history { width: 28px; height: 30px; }
-  .workspace { width: 100%; padding: 10px 0; }
+  .workspace { width: 100%; padding: 10px 0 0; }
   .note-editor { width: 100%; margin: 0; padding: 22px 18px; }
   .note-date { font-size: 12px; }
   .note-actions .button { min-height: 32px; padding-inline: 7px; font-size: 12px; }
