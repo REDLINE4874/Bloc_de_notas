@@ -37,11 +37,13 @@
   .account-menu { gap: 4px; }
   .account-avatar { width: 27px; height: 27px; }
   .account-popover { min-width: 120px; }
-  .note-tabbar { min-height: 40px; padding-top: 6px; }
+  .note-tabbar { min-height: 40px; padding-top: 0; align-items: center; }
   .note-tabbar-shell { margin-inline: 0; padding-inline: 16px; }
+  .note-tabbar__content { align-items: center; }
   .notes-list { scrollbar-width: none; }
   .notes-list::-webkit-scrollbar { display: none; }
-  .note-tabbar__content { gap: 4px; }
+  .note-tabbar__content { gap: 4px; align-items: center; }
+  .notes-list { align-items: center; }
   .note-tab-item { min-width: 94px; min-height: 30px; flex-basis: 108px; }
   .note-tab { padding-inline: 7px; }
   .note-tab__title { font-size: 12px; }
@@ -56,8 +58,7 @@
   .note-actions .button { min-height: 32px; padding-inline: 7px; font-size: 12px; }
   .note-content-wrap { margin-top: 12px; }
   .format-dialog { padding: 18px; }
-  .format-toolbar { width: 100%; box-sizing: border-box; flex-wrap: wrap; justify-content: center; }
-  .format-toolbar__group { justify-content: center; }
+  .format-toolbar { flex-wrap: wrap; }
   .format-toolbar__family { width: min(190px, 52vw); }
   .format-color-picker__trigger { min-height: 44px; }
   .note-find { top: 8px; right: 12px; width: calc(100vw - 24px); }
