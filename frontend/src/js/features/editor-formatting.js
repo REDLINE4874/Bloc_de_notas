@@ -404,6 +404,15 @@ function applyToggleFormat(command) {
     range = getFormattingRange();
   }
   if (range.collapsed) return;
+
+  if (command === "italic") {
+    restoreEditorSelection(range);
+    if (!document.execCommand("italic", false)) return;
+    saveEditorSelection();
+    noteContent.dispatchEvent(new Event("input", { bubbles: true }));
+    return;
+  }
+
   const tagNames = command === "bold" ? ["B", "STRONG"] : command === "italic" ? ["I", "EM"] : ["U"];
   const alreadyFormatted = isRangeFormatted(range, tagNames);
   const sharedWrapper = alreadyFormatted

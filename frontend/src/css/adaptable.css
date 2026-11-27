@@ -50,8 +50,8 @@
   .tab-scroll { width: 28px; height: 30px; flex-basis: 28px; }
   .tab-create { width: 30px; height: 30px; margin-inline: 0 2px; }
   .tab-history { width: 28px; height: 30px; }
-  .workspace { padding: 18px; }
-  .note-editor { margin: 0; padding: 22px 18px; }
+  .workspace { width: 100%; padding: 18px 0; }
+  .note-editor { width: 100%; margin: 0; padding: 22px 18px; }
   .note-date { font-size: 12px; }
   .note-actions .button { min-height: 32px; padding-inline: 7px; font-size: 12px; }
   .note-content-wrap { margin-top: 12px; }
