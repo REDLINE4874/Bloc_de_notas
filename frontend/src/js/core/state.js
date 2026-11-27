@@ -59,17 +59,22 @@ var shareDialog = document.getElementById("shareDialog");
 var shareForm = document.getElementById("shareForm");
 var shareStatus = document.getElementById("shareStatus");
 var confirmDialog = document.getElementById("confirmDialog");
+var noteTypeDialog = document.getElementById("noteTypeDialog");
+var createNormalNoteButton = document.getElementById("createNormalNote");
+var createCodeNoteButton = document.getElementById("createCodeNote");
 var confirmDialogTitle = document.getElementById("confirmDialogTitle");
 var confirmDialogMessage = document.getElementById("confirmDialogMessage");
 var cancelConfirmation = document.getElementById("cancelConfirmation");
 var acceptConfirmation = document.getElementById("acceptConfirmation");
 var settingsButton = document.getElementById("settingsButton");
 var settingsMenu = document.getElementById("settingsMenu");
+var developerModeToggle = document.getElementById("developerModeToggle");
+var developerToolbar = document.getElementById("developerToolbar");
+var developerLanguageSelect = document.getElementById("developerLanguageSelect");
 var fontSizeOption = document.getElementById("fontSizeOption");
 var fontSizeDialog = document.getElementById("fontSizeDialog");
 var fontFamilySelect = document.getElementById("fontFamilySelect");
 var fontSizeSelect = document.getElementById("fontSizeSelect");
-var applyCodeFormat = document.getElementById("applyCodeFormat");
 var cancelFontSize = document.getElementById("cancelFontSize");
 var confirmFontSize = document.getElementById("confirmFontSize");
 var formatToolbar = document.getElementById("formatToolbar");
@@ -84,6 +89,7 @@ var supabaseReady = Boolean(
 );
 var DRAFT_PREFIX = "notas-app-draft";
 var THEME_STORAGE_KEY = "notas-app-theme";
+var DEVELOPER_MODE_STORAGE_KEY = "notas-app-developer-mode";
 var OPEN_TABS_PREFIX = "notas-app-open-tabs";
 var OPEN_TAB_STATE_TABLE = "note_tab_states";
 var READ_SHARED_NOTES_PREFIX = "notas-app-read-shared-notes";
@@ -108,6 +114,7 @@ var CODE_LANGUAGE_OPTIONS = [
 var CODE_LANGUAGE_IDS = CODE_LANGUAGE_OPTIONS
   .filter(({ value }) => value !== "auto")
   .map(({ value }) => value);
+var DEVELOPER_LANGUAGE_OPTIONS = CODE_LANGUAGE_OPTIONS.filter(({ value }) => value !== "auto");
 var NOTE_FONT_FAMILIES = [
   "Inter, 'Segoe UI', system-ui, sans-serif",
   "Arial, sans-serif",
@@ -126,6 +133,7 @@ var shortDateTimeFormatter = new Intl.DateTimeFormat("es-MX", {
 
 var client = null;
 var currentUser = null;
+var developerModeEnabled = false;
 var recoveryActive = false;
 var persistentAuthMessage = "";
 var pendingFormatContent = null;

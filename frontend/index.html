@@ -76,7 +76,7 @@
       <header class="app-header">
         <div class="app-header__top">
           
-          <div class="app-header__controls">
+          <nav class="app-header__controls" aria-label="Navegación principal">
             <button class="icon-button section-icon-button" id="openEditor" type="button" aria-label="Lienzo" aria-current="page" aria-controls="workspace">
               <img class="app-icon" src="assets/icons/logoapp.svg" alt="" aria-hidden="true" />
               <span class="floating-label" role="tooltip">Lienzo</span>
@@ -102,6 +102,13 @@
                     <span>Formato</span>
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                   </button>
+                  <div class="settings-menu__toggle">
+                    <span class="settings-menu__toggle-copy">
+                      <label for="developerModeToggle">Modo desarrollador</label>
+                      <small id="developerModeDescription">Al crear una nota, podrás elegir si es normal o de código.</small>
+                    </span>
+                    <input id="developerModeToggle" type="checkbox" switch role="switch" aria-describedby="developerModeDescription" />
+                  </div>
                   <button class="settings-menu__option" id="importTextFile" type="button">
                     <span>Importar archivo TXT</span>
                   </button>
@@ -110,7 +117,7 @@
               </div>
               <input id="textFileInput" type="file" accept=".txt,text/plain" hidden />
             </div>
-          </div>
+          </nav>
           <div class="app-header__user-tools">
             <button class="theme-toggle" id="themeToggle" type="button" role="switch" aria-checked="false" aria-label="Tema oscuro" title="Cambiar a tema oscuro" data-theme-toggle>
               <span class="theme-toggle__clouds" aria-hidden="true"><span></span><span></span></span>
@@ -129,6 +136,8 @@
             </div>
           </div>
         </div>
+      </header>
+      <div class="note-tabbar-shell">
         <div class="note-tabbar">
           <div class="note-tabbar__label">
    
@@ -159,8 +168,7 @@
             </div>
           </div>
         </div>
-      </header>
-
+      </div>
       <section class="workspace" id="workspace" aria-label="Lienzo de escritura">
         <div class="note-find" id="noteFindPanel" role="search" aria-label="Buscar en la nota" hidden>
           <label class="sr-only" for="noteFindInput">Buscar en la nota</label>
@@ -212,6 +220,17 @@
               <button class="button button--quiet button--danger" id="leaveSharedNote" type="button" hidden>Dejar de ver</button>
             </div>
           </div>
+          <div class="developer-toolbar" id="developerToolbar" hidden>
+            <label id="developerLanguageSelectLabel" for="developerLanguageSelectButton">Lenguaje</label>
+            <div class="share-select developer-language-select" data-share-select="developerLanguageSelect">
+              <input id="developerLanguageSelect" type="hidden" value="javascript" />
+              <button class="share-select__trigger" id="developerLanguageSelectButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="developerLanguageSelectOptions" aria-labelledby="developerLanguageSelectLabel developerLanguageSelectValue">
+                <span id="developerLanguageSelectValue"></span>
+                <svg class="share-select__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+              </button>
+              <div class="share-select__options" id="developerLanguageSelectOptions" role="listbox" aria-labelledby="developerLanguageSelectLabel" hidden></div>
+            </div>
+          </div>
           <div class="note-content-wrap" id="noteContentWrap">
             <div class="note-content-highlights" id="noteContentHighlights" aria-hidden="true" hidden></div>
             <div class="note-content" id="noteContent" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Empieza a escribir..." aria-label="Contenido de la nota" lang="es" spellcheck="true"></div>
@@ -221,8 +240,6 @@
                 <button class="note-context-menu__action" id="cutSelectedText" type="button">Cortar</button>
                 <button class="note-context-menu__action" id="copySelectedText" type="button">Copiar</button>
                 <button class="note-context-menu__action" id="pasteIntoNote" type="button">Pegar</button>
-                <hr />
-                <button class="note-context-menu__action" id="insertCodeBlock" type="button">Insertar bloque de código</button>
                 <button class="note-context-menu__action" id="formatSelectedText" type="button" aria-controls="fontSizeDialog">Formato</button>
               </div>
             </div>
@@ -282,6 +299,15 @@
         </div>
       </form>
       <p class="status" id="shareStatus" role="status" aria-live="polite"></p>
+    </dialog>
+
+    <dialog class="confirm-dialog note-type-dialog" id="noteTypeDialog" aria-labelledby="noteTypeTitle" aria-describedby="noteTypeMessage">
+      <h2 id="noteTypeTitle">¿Qué tipo de nota quieres crear?</h2>
+      <p id="noteTypeMessage">Elige cómo quieres empezar esta nota.</p>
+      <div class="confirm-dialog__actions">
+        <button class="button button--quiet" id="createNormalNote" type="button">Nota normal</button>
+        <button class="button button--primary" id="createCodeNote" type="button">Nota para código</button>
+      </div>
     </dialog>
 
     <dialog class="confirm-dialog" id="confirmDialog" aria-labelledby="confirmDialogTitle" aria-describedby="confirmDialogMessage">
@@ -361,19 +387,6 @@
           </div>
         </div>
       </div>
-      <details class="format-code-options">
-        <summary>
-          <span class="material-symbols-outlined" aria-hidden="true">code</span>
-          <span class="format-code-options__summary-copy">Opciones de desarrollador</span>
-          <svg class="format-code-options__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-        </summary>
-        <div class="format-code-options__content">
-          <button class="button button--quiet format-code-insert" id="applyCodeFormat" type="button">
-            <span class="material-symbols-outlined" aria-hidden="true">code</span>
-            <span>Insertar cuadro de código</span>
-          </button>
-        </div>
-      </details>
       <div class="format-dialog__actions">
         <button class="button button--quiet" id="cancelFontSize" type="button">Cancelar</button>
         <button class="button button--primary" id="confirmFontSize" type="button">Aplicar</button>

@@ -3,42 +3,45 @@
   font-family: Inter, "Segoe UI", system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --page: #E4E4E5;
-  --surface: #BEBEBE;
-  --surface-soft: #BEBEBE;
+  --page: #F6F7F9;
+  --surface: #e9e9e9;
+  --surface-soft: #F7F8FA;
   --input-surface: var(--surface-soft);
-  --header: #E4E4E5;
-  --text: #3C3C3C;
-  --muted: #3C3C3C;
-  --muted-strong: #3C3C3C;
-  --text-soft: #3C3C3C;
-  --text-strong: #3C3C3C;
-  --placeholder: #595959;
-  --hover: rgb(60 60 60 / 8%);
-  --selected: #BEBEBE;
-  --selected-text: #3C3C3C;
+  --header: #F6F7F9;
+  --text: #242832;
+  --muted: #6B7280;
+  --muted-strong: #687282;
+  --text-soft: #343B46;
+  --text-strong: #050607;
+  --placeholder: #9299A4;
+  --hover: rgb(36 48 64 / 6%);
+  --selected: #E8EDF2;
+  --selected-text: #26384B;
   --tab-active: #FFFFFF;
-  --line: #646464;
-  --accent: #000000;
+  --line: #E2E6EB;
+  --accent: #101010;
   --accent-contrast: #FFFFFF;
-  --icon-accent: #000000;
-  --shared-note-accent: #000000;
-  --accent-soft: rgb(0 0 0 / 18%);
-  --ambient-accent: rgb(0 0 0 / 10%);
-  --danger: #8B252B;
-  --success: #1D7135;
+  --icon-accent: #101010;
+  --shared-note-accent: #526B86;
+  --accent-soft: rgb(82 107 134 / 13%);
+  --ambient-accent: rgb(82 107 134 / 4%);
+  --danger: #B3434C;
+  --danger-soft: rgb(179 67 76 / 10%);
+  --success: #34745D;
   --badge-bg: var(--accent);
   --badge-text: #fff;
-  --shadow: 0 10px 35px rgb(0 0 0 / 16%);
-  --idea-surface: #BEBEBE;
-  --idea-text: #3C3C3C;
-  --notice-surface: #BEBEBE;
-  --notice-text: #3C3C3C;
-  --notice-link: #3C3C3C;
-  --search-highlight: rgb(60 60 60 / 8%);
-  --search-highlight-current: rgb(60 60 60 / 16%);
-  --search-decoration: rgb(60 60 60 / 35%);
-  --text-selection: rgb(60 60 60 / 8%);
+  --shadow: 0 2px 6px rgb(65 85 120 / 5%), 0 12px 28px rgb(65 85 120 / 7%), 0 28px 56px rgb(65 85 120 / 10%);
+  --shadow-hover: 0 6px 12px rgb(65 85 120 / 7%), 0 22px 48px rgb(65 85 120 / 10%), 0 48px 88px rgb(65 85 120 / 14%);
+  --panel-radius: 18px;
+  --idea-surface: #EEF2F6;
+  --idea-text: #526B86;
+  --notice-surface: #EEF2F6;
+  --notice-text: #34445A;
+  --notice-link: #526B86;
+  --search-highlight: rgb(82 107 134 / 14%);
+  --search-highlight-current: rgb(82 107 134 / 24%);
+  --search-decoration: rgb(82 107 134 / 55%);
+  --text-selection: rgb(82 107 134 / 20%);
 }
 
 :root[data-theme="dark"] {
@@ -66,10 +69,12 @@
   --accent-soft: rgb(211 162 29 / 22%);
   --ambient-accent: rgb(211 162 29 / 12%);
   --danger: #ff6b6b;
+  --danger-soft: rgb(255 107 107 / 14%);
   --success: #73D68A;
   --badge-bg: var(--accent);
   --badge-text: #161616;
-  --shadow: 0 16px 36px rgb(0 0 0 / 55%), 0 4px 12px rgb(0 0 0 / 35%);
+  --shadow: 0 2px 6px rgb(30 30 30 / 35%), 0 14px 32px rgb(30 30 30 / 45%), 0 32px 64px rgb(30 30 30 / 55%);
+  --shadow-hover: 0 8px 18px rgb(30 30 30 / 38%), 0 26px 56px rgb(30 30 30 / 50%), 0 56px 100px rgb(30 30 30 / 62%);
   --idea-surface: #303030;
   --idea-text: #D3A21D;
   --notice-surface: rgb(211 162 29 / 12%);
@@ -88,6 +93,25 @@
 :root .action-icon-button--danger svg,
 :root .sign-out-button svg,
 :root .code-block-delete-button svg { color: var(--danger); }
+
+:root :is(.auth-card, .note-editor, .notes-library-item, .share-dialog, .confirm-dialog, .format-dialog, .format-dialog.is-selection-toolbar, .note-context-menu, .note-find, .note-tabbar-shell, .settings-menu, .account-popover) {
+  box-shadow: var(--shadow);
+  border: 0;
+  border-radius: var(--panel-radius);
+  transition: box-shadow .2s ease;
+}
+
+@media (hover: hover) {
+  :root :is(.auth-card, .note-editor, .notes-library-item, .share-dialog, .confirm-dialog, .format-dialog, .format-dialog.is-selection-toolbar, .note-context-menu, .note-find, .note-tabbar-shell, .settings-menu, .account-popover):hover {
+    box-shadow: var(--shadow-hover);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root :is(.auth-card, .note-editor, .notes-library-item, .share-dialog, .confirm-dialog, .format-dialog, .note-context-menu, .note-find, .note-tabbar-shell, .settings-menu, .account-popover) {
+    transition: none;
+  }
+}
 
 * { box-sizing: border-box; }
 ::selection { background: var(--text-selection); color: var(--text-selection-color, inherit); }

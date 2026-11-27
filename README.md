@@ -71,9 +71,9 @@ por una clave `service_role`.
 Los scripts de `supabase/` documentan el esquema compartido: `notes.sql`
 configura las notas, `profiles.sql` los perfiles y `note-sharing.sql` el
 compartido por nombre de usuario. `note-tab-states.sql` sincroniza entre
-dispositivos las pestañas abiertas y la nota activa. Ya que el backend pertenece
-a ambas aplicaciones, no vuelvas a ejecutar estos scripts si la base de datos
-actual ya está configurada.
+dispositivos las pestañas abiertas y la nota activa. Si la base de datos ya
+está configurada, ejecuta de nuevo `notes.sql` para añadir las columnas del
+modo desarrollador; es idempotente y conserva las notas existentes.
 
 ## Publicación
 

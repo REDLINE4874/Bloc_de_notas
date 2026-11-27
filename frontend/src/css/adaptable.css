@@ -1,10 +1,22 @@
 @media (max-width: 445px) {
+  :root {
+    --shadow: 0 1px 3px rgb(65 85 120 / 4%), 0 7px 16px rgb(65 85 120 / 6%), 0 16px 30px rgb(65 85 120 / 8%);
+    --shadow-hover: 0 3px 6px rgb(65 85 120 / 6%), 0 10px 20px rgb(65 85 120 / 8%), 0 22px 32px rgb(65 85 120 / 12%);
+  }
+  :root[data-theme="dark"] {
+    --shadow: 0 1px 3px rgb(30 30 30 / 20%), 0 7px 16px rgb(30 30 30 / 28%), 0 16px 30px rgb(30 30 30 / 36%);
+    --shadow-hover: 0 3px 6px rgb(30 30 30 / 24%), 0 10px 20px rgb(30 30 30 / 34%), 0 22px 32px rgb(30 30 30 / 44%);
+  }
   .app-header { padding-inline: 18px; }
   .app-header__top { flex-wrap: wrap; gap: 8px; }
   .app-header__user-tools { margin-left: auto; }
   .brand { gap: 7px; font-size: 16px; }
   .brand__icon { width: 29px; height: 29px; border-radius: 9px; font-size: 15px; }
-  .workspace { padding-inline: 0; }
+  .sign-out-button .floating-label { right: 6px; }
+  .note-actions .floating-label { left: auto; right: 0; transform: translateY(-3px); }
+  .note-actions .action-icon-button:hover .floating-label,
+  .note-actions .action-icon-button:focus-visible .floating-label { transform: translateY(0); }
+  .workspace { padding: 12px; }
   .note-tabbar { gap: 8px; }
   .note-tabbar__label { display: none; }
   .note-tab-item { flex-basis: 122px; }
@@ -15,7 +27,7 @@
 
 @media (max-width: 1000px) {
   .auth-card { padding: 26px 22px; }
-  .app-header { padding: 10px 12px 0; }
+  .app-header { padding: 10px 16px; }
   .app-header__top { gap: 6px; }
   .app-header__controls { gap: 4px; }
   .install-button { min-height: 32px; padding-inline: 9px; font-size: 12px; }
@@ -26,6 +38,7 @@
   .account-avatar { width: 27px; height: 27px; }
   .account-popover { min-width: 120px; }
   .note-tabbar { min-height: 40px; padding-top: 6px; }
+  .note-tabbar-shell { margin-inline: 16px; padding-inline: 8px; }
   .notes-list { scrollbar-width: none; }
   .notes-list::-webkit-scrollbar { display: none; }
   .note-tabbar__content { gap: 4px; }
@@ -37,8 +50,8 @@
   .tab-scroll { width: 28px; height: 30px; flex-basis: 28px; }
   .tab-create { width: 30px; height: 30px; margin-inline: 0 2px; }
   .tab-history { width: 28px; height: 30px; }
-  .workspace { padding: 8px 0; }
-  .note-editor { margin: 0; border-radius: 0; padding: 16px 13px; }
+  .workspace { padding: 18px; }
+  .note-editor { margin: 0; padding: 22px 18px; }
   .note-date { font-size: 12px; }
   .note-actions .button { min-height: 32px; padding-inline: 7px; font-size: 12px; }
   .note-content-wrap { margin-top: 12px; }

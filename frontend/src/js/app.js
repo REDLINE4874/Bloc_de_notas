@@ -8,6 +8,27 @@ confirmDialog.addEventListener("click", (event) => {
   if (event.target === confirmDialog) finishConfirmation(false);
 });
 
+initializeShareSelect("developerLanguageSelect", "JavaScript", DEVELOPER_LANGUAGE_OPTIONS, () => {
+  developerLanguageSelect.dispatchEvent(new Event("change", { bubbles: true }));
+});
+document.getElementById("developerLanguageSelectButton").disabled = true;
+
+try {
+  developerModeEnabled = localStorage.getItem(DEVELOPER_MODE_STORAGE_KEY) === "true";
+} catch (error) {
+  setGlobalStatus(`No se pudo leer el ajuste del modo desarrollador: ${error.message}`, true);
+}
+developerModeToggle.checked = developerModeEnabled;
+developerModeToggle.addEventListener("change", () => {
+  try {
+    localStorage.setItem(DEVELOPER_MODE_STORAGE_KEY, String(developerModeToggle.checked));
+    developerModeEnabled = developerModeToggle.checked;
+  } catch (error) {
+    developerModeToggle.checked = developerModeEnabled;
+    setGlobalStatus(`No se pudo guardar el ajuste del modo desarrollador: ${error.message}`, true);
+  }
+});
+
 if (!supabaseReady) {
   authScreen.hidden = false;
   const missingConfig = !config.url
@@ -55,8 +76,20 @@ if (!supabaseReady) {
   });
   document.addEventListener("keydown", handleGlobalKeydown);
 
-  document.getElementById("createNote").addEventListener("click", () => createNote());
-  document.getElementById("emptyCreateNote").addEventListener("click", () => createNote());
+  document.getElementById("createNote").addEventListener("click", createNewNote);
+  document.getElementById("emptyCreateNote").addEventListener("click", createNewNote);
+  createNormalNoteButton.addEventListener("click", () => {
+    noteTypeDialog.close("normal");
+  });
+  createCodeNoteButton.addEventListener("click", () => {
+    noteTypeDialog.close("code");
+  });
+  developerLanguageSelect.addEventListener("change", () => {
+    const note = currentNote();
+    if (!note || note.developer_mode !== true || !canEditNote(note)) return;
+    updateSyntaxHighlights();
+    scheduleNoteSave();
+  });
   [undoNote, redoNote].forEach((button) => {
     button.addEventListener("pointerdown", (event) => event.preventDefault());
   });
@@ -367,9 +400,11 @@ if (!supabaseReady) {
 
   if ("serviceWorker" in navigator && window.isSecureContext) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./service-worker.js").catch((error) => {
-        setGlobalStatus(`No se pudo preparar el modo instalable: ${error.message}`, true);
-      });
+      navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" })
+        .then((registration) => registration.update())
+        .catch((error) => {
+          setGlobalStatus(`No se pudo preparar el modo instalable: ${error.message}`, true);
+        });
     });
   }
 }

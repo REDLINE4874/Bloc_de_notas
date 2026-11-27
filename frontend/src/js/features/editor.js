@@ -20,6 +20,11 @@ function getNoteSharingStatus(note) {
   return usernames.length ? `· Compartida con ${usernames.join(", ")}` : "";
 }
 
+function getDeveloperLanguage(language) {
+  return DEVELOPER_LANGUAGE_OPTIONS.find(({ value }) => value === language)?.value
+    || DEVELOPER_LANGUAGE_OPTIONS[0].value;
+}
+
 var noteHistoryById = new Map();
 var applyingNoteHistory = false;
 var NOTE_HISTORY_LIMIT = 100;
@@ -141,15 +146,27 @@ function renderEditor() {
     sharingSection.hidden = true;
     noteFindPanel.hidden = true;
     noteContentHighlights.hidden = true;
+    noteContentHighlights.classList.remove("is-developer-mode");
+    noteContentWrap.classList.remove("is-developer-mode");
     noteContent.classList.remove("is-find-open");
     noteContent.classList.remove("is-syntax-highlighted");
+    noteContent.classList.remove("is-developer-mode");
+    developerToolbar.hidden = true;
     updateNoteHistoryButtons();
     return;
   }
 
   const owned = isNoteOwner(note);
+  const isDeveloperNote = note.developer_mode === true;
+  noteContentWrap.classList.toggle("is-developer-mode", isDeveloperNote);
   noteTitle.value = note.title || "";
   setNoteContent(note.content || "");
+  noteContent.classList.toggle("is-developer-mode", isDeveloperNote);
+  noteContent.spellcheck = !isDeveloperNote;
+  noteContent.setAttribute("aria-label", isDeveloperNote ? "Código de la nota" : "Contenido de la nota");
+  developerToolbar.hidden = !isDeveloperNote;
+  setShareSelectValue("developerLanguageSelect", getDeveloperLanguage(note.code_language));
+  document.getElementById("developerLanguageSelectButton").disabled = !editable;
   resetNoteHistory(note.id);
   updateNoteHistoryButtons();
   noteTitle.disabled = !editable;
@@ -217,11 +234,13 @@ function runNoteHistoryCommand(command, button) {
   if (returnFocusToButton) button.focus();
 }
 
-function updateListPreview(noteId, title, content, updatedAt) {
+function updateListPreview(noteId, title, content, updatedAt, developerMode, codeLanguage) {
   const note = loadedNotes.find((item) => item.id === noteId);
   if (!note) return;
   note.title = title;
   note.content = content;
+  note.developer_mode = developerMode;
+  note.code_language = codeLanguage;
   note.updated_at = updatedAt || new Date().toISOString();
   loadedNotes.sort((left, right) => Date.parse(right.updated_at) - Date.parse(left.updated_at));
   renderNoteList();
@@ -230,6 +249,15 @@ function updateListPreview(noteId, title, content, updatedAt) {
 function queueNoteSave(noteId, snapshot, revision) {
   saveQueue = saveQueue.then(async () => {
     if (noteRevisions.get(noteId) !== revision || !currentUser) return;
+    const note = loadedNotes.find((item) => item.id === noteId);
+    if (!note) return;
+    const savedSnapshot = {
+      ...snapshot,
+      developer_mode: typeof snapshot.developer_mode === "boolean"
+        ? snapshot.developer_mode
+        : note.developer_mode === true,
+      code_language: getDeveloperLanguage(snapshot.code_language || note.code_language),
+    };
     if (!navigator.onLine) {
       if (activeNoteId === noteId) setSaveStatus("Sin conexión · borrador guardado en este dispositivo", true);
       return;
@@ -240,8 +268,10 @@ function queueNoteSave(noteId, snapshot, revision) {
       const { data, error } = await client
         .from("notes")
         .update({
-          title: snapshot.title,
-          content: snapshot.content,
+          title: savedSnapshot.title,
+          content: savedSnapshot.content,
+          developer_mode: savedSnapshot.developer_mode,
+          code_language: savedSnapshot.code_language,
           updated_at: new Date().toISOString(),
         })
         .eq("id", noteId)
@@ -249,7 +279,14 @@ function queueNoteSave(noteId, snapshot, revision) {
         .maybeSingle();
       if (error) throw error;
       if (!data) throw new Error("No se pudo guardar la nota. Puede que ya no tengas permiso para editarla.");
-      updateListPreview(noteId, snapshot.title, snapshot.content, data.updated_at);
+      updateListPreview(
+        noteId,
+        savedSnapshot.title,
+        savedSnapshot.content,
+        data.updated_at,
+        savedSnapshot.developer_mode,
+        savedSnapshot.code_language,
+      );
 
       if (noteRevisions.get(noteId) === revision) {
         removeLocalDraft(noteId);
@@ -270,7 +307,14 @@ function scheduleNoteSave() {
   if (!note || !canEditNote(note)) return;
   const revision = (noteRevisions.get(note.id) || 0) + 1;
   noteRevisions.set(note.id, revision);
-  const snapshot = { title: noteTitle.value, content: serializeNoteContent() };
+  const snapshot = {
+    title: noteTitle.value,
+    content: serializeNoteContent(),
+    developer_mode: note.developer_mode === true,
+    code_language: note.developer_mode === true
+      ? getDeveloperLanguage(developerLanguageSelect.value)
+      : getDeveloperLanguage(note.code_language),
+  };
   writeLocalDraft(note.id, { ...snapshot, savedAt: new Date().toISOString() });
   setSaveStatus("Cambios sin guardar");
   renderNoteList();
@@ -283,10 +327,12 @@ function scheduleNoteSave() {
 
 function noteContentHasChanged(note) {
   const savedContent = note.content || "";
-  if (savedContent.startsWith(NOTE_CONTENT_PREFIX)) {
-    return serializeNoteContent() !== savedContent;
-  }
-  return readNoteContentText() !== getNoteContentText(savedContent);
+  const contentChanged = savedContent.startsWith(NOTE_CONTENT_PREFIX)
+    ? serializeNoteContent() !== savedContent
+    : readNoteContentText() !== getNoteContentText(savedContent);
+  return contentChanged
+    || (note.developer_mode === true
+      && getDeveloperLanguage(developerLanguageSelect.value) !== getDeveloperLanguage(note.code_language));
 }
 
 async function flushNoteSave() {
@@ -300,7 +346,14 @@ async function flushNoteSave() {
   saveTimer = null;
   const revision = (noteRevisions.get(note.id) || 0) + 1;
   noteRevisions.set(note.id, revision);
-  const snapshot = { title: noteTitle.value, content: serializeNoteContent() };
+  const snapshot = {
+    title: noteTitle.value,
+    content: serializeNoteContent(),
+    developer_mode: note.developer_mode === true,
+    code_language: note.developer_mode === true
+      ? getDeveloperLanguage(developerLanguageSelect.value)
+      : getDeveloperLanguage(note.code_language),
+  };
   writeLocalDraft(note.id, { ...snapshot, savedAt: new Date().toISOString() });
   return queueNoteSave(note.id, snapshot, revision);
 }
@@ -311,6 +364,10 @@ function restoreDraft() {
   if (!note || !draft) return;
   noteTitle.value = draft.title;
   setNoteContent(draft.content);
+  if (note.developer_mode === true) {
+    setShareSelectValue("developerLanguageSelect", getDeveloperLanguage(draft.code_language || note.code_language));
+    updateSyntaxHighlights();
+  }
   resetNoteHistory(note.id);
   draftNotice.hidden = true;
   scheduleNoteSave();
@@ -323,6 +380,10 @@ function discardDraft() {
   draftNotice.hidden = true;
   noteTitle.value = note.title || "";
   setNoteContent(note.content || "");
+  if (note.developer_mode === true) {
+    setShareSelectValue("developerLanguageSelect", getDeveloperLanguage(note.code_language));
+    updateSyntaxHighlights();
+  }
   resetNoteHistory(note.id);
   setSaveStatus("Borrador local descartado");
 }
@@ -331,7 +392,7 @@ async function loadNotes() {
   setGlobalStatus("");
   const { data, error } = await client
     .from("notes")
-    .select("id, user_id, title, content, note_date, updated_at")
+    .select("id, user_id, title, content, developer_mode, code_language, note_date, updated_at")
     .order("updated_at", { ascending: false });
   if (error) {
     setGlobalStatus(`No se pudieron cargar las notas: ${error.message}`, true);
@@ -381,7 +442,11 @@ async function loadNotes() {
     }
   }
 
-  loadedNotes = data || [];
+  loadedNotes = (data || []).map((note) => ({
+    ...note,
+    developer_mode: note.developer_mode === true,
+    code_language: getDeveloperLanguage(note.code_language),
+  }));
   const incomingSharedNoteIds = new Set(
     loadedNotes.filter((note) => note.user_id !== currentUser.id).map((note) => note.id),
   );
@@ -410,7 +475,21 @@ async function loadNotes() {
   renderEditor();
 }
 
-async function createNote(title = "", content = "", successMessage = "Nota nueva") {
+async function createNewNote() {
+  let developerMode = false;
+  if (developerModeEnabled) {
+    noteTypeDialog.returnValue = "";
+    noteTypeDialog.showModal();
+    const choice = await new Promise((resolve) => {
+      noteTypeDialog.addEventListener("close", () => resolve(noteTypeDialog.returnValue), { once: true });
+    });
+    if (choice !== "normal" && choice !== "code") return;
+    developerMode = choice === "code";
+  }
+  await createNote("", "", "Nota nueva", developerMode);
+}
+
+async function createNote(title = "", content = "", successMessage = "Nota nueva", developerMode = false) {
   await flushNoteSave();
   const { data, error } = await client
     .from("notes")
@@ -418,9 +497,11 @@ async function createNote(title = "", content = "", successMessage = "Nota nueva
       user_id: currentUser.id,
       title,
       content,
+      developer_mode: developerMode,
+      code_language: DEVELOPER_LANGUAGE_OPTIONS[0].value,
       note_date: localDateValue(),
     })
-    .select("id, user_id, title, content, note_date, updated_at")
+    .select("id, user_id, title, content, developer_mode, code_language, note_date, updated_at")
     .single();
   if (error) {
     setGlobalStatus(`No se pudo crear la nota: ${error.message}`, true);

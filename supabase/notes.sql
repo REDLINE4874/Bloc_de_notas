@@ -11,9 +11,15 @@ create table if not exists public.notes (
 
 alter table public.notes add column if not exists color text not null default 'yellow';
 alter table public.notes add column if not exists note_date date;
+alter table public.notes add column if not exists developer_mode boolean not null default false;
+alter table public.notes add column if not exists code_language text not null default 'javascript';
 update public.notes set note_date = created_at::date where note_date is null;
 alter table public.notes alter column note_date set default current_date;
 alter table public.notes alter column note_date set not null;
+
+alter table public.notes drop constraint if exists notes_code_language_check;
+alter table public.notes add constraint notes_code_language_check
+  check (code_language in ('javascript', 'typescript', 'python', 'java', 'c', 'cpp', 'csharp', 'css', 'xml', 'json', 'sql', 'bash', 'yaml', 'markdown'));
 
 create or replace function public.prevent_note_date_change()
 returns trigger

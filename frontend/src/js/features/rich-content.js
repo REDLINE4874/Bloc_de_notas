@@ -430,11 +430,39 @@ function applyCodeUnderlineRanges(fragment, ranges) {
   });
 }
 
+function updateDeveloperSyntaxHighlights(note) {
+  const source = getPlainTextFromRichContent(noteContent);
+  const language = getDeveloperLanguage(note.code_language);
+  const highlighted = getHighlightedFragment(source, language);
+  if (!highlighted) {
+    noteContentHighlights.replaceChildren();
+    noteContentHighlights.hidden = true;
+    noteContent.classList.remove("is-syntax-highlighted");
+    updateCodeBlockControls();
+    return false;
+  }
+
+  const sourceOverlay = document.createElement("div");
+  sourceOverlay.className = "developer-code-source";
+  sourceOverlay.append(highlighted.fragment);
+  noteContentHighlights.replaceChildren(sourceOverlay);
+  noteContentHighlights.hidden = false;
+  noteContent.classList.add("is-syntax-highlighted");
+  syncNoteContentHighlightsViewport();
+  updateCodeBlockControls();
+  return true;
+}
+
 function updateSyntaxHighlights() {
+  const note = currentNote();
+  const isDeveloperNote = note?.developer_mode === true;
+  noteContentHighlights.classList.toggle("is-developer-mode", isDeveloperNote);
   if (noteFindPanel && !noteFindPanel.hidden) {
     updateCodeBlockControls();
     return false;
   }
+  if (isDeveloperNote) return updateDeveloperSyntaxHighlights(note);
+
   const overlay = noteContent.cloneNode(true);
   overlay.querySelectorAll("pre > code[id]").forEach((code) => code.removeAttribute("id"));
   let highlightedCount = 0;

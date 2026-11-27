@@ -1,4 +1,4 @@
-const CACHE_NAME = "notas-standalone-shell-v33";
+const CACHE_NAME = "notas-standalone-shell-v38";
 const CACHE_PREFIX = "notas-standalone-shell-";
 const APP_SHELL = new URL("./", self.location.href).toString();
 const SHELL_FILES = [
@@ -28,6 +28,7 @@ const SHELL_FILES = [
   new URL("./assets/icons/icon-192-v12.png", self.location.href).toString(),
   new URL("./assets/icons/icon-512-v12.png", self.location.href).toString(),
 ];
+const SHELL_PATHS = new Set(SHELL_FILES.map((url) => new URL(url).pathname));
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -67,6 +68,14 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.match(request).then((cached) => cached || fetch(request)),
+    fetch(new Request(request, { cache: "no-cache" }))
+      .then(async (response) => {
+        if (response.ok && SHELL_PATHS.has(new URL(request.url).pathname)) {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
+        }
+        return response;
+      })
+      .catch(async () => (await caches.match(request)) || Response.error()),
   );
 });

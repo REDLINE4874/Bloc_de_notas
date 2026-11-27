@@ -4,7 +4,6 @@ const noteContextMenuItems = document.getElementById("noteContextMenuItems");
 const cutSelectedText = document.getElementById("cutSelectedText");
 const copySelectedText = document.getElementById("copySelectedText");
 const pasteIntoNote = document.getElementById("pasteIntoNote");
-const insertCodeBlock = document.getElementById("insertCodeBlock");
 const formatSelectedText = document.getElementById("formatSelectedText");
 const textColorInput = document.getElementById("textColorInput");
 const resetTextColor = document.getElementById("resetTextColor");
@@ -342,67 +341,6 @@ function getFormattingAncestor(node, tagNames) {
   return null;
 }
 
-function getCodeFormattingAncestor(node) {
-  let element = node instanceof Element ? node : node.parentElement;
-  while (element && element !== noteContent) {
-    if (element.tagName === "CODE"
-      || (element.tagName === "SPAN" && element.dataset.language === "plain")) return element;
-    element = element.parentElement;
-  }
-  return null;
-}
-
-function getCodeFormattingForRange(range) {
-  const formatting = getCodeFormattingAncestor(range.startContainer);
-  if (formatting && formatting.contains(range.endContainer)) return formatting;
-
-  const selectedText = range.toString();
-  if (!selectedText) return null;
-  const matches = Array.from(noteContent.querySelectorAll('code, span[data-language="plain"]'))
-    .filter((element) => range.intersectsNode(element)
-      && getPlainTextFromRichContent(element) === selectedText);
-  return matches.length === 1 ? matches[0] : null;
-}
-
-function createCodeBlock(text, language) {
-  const pre = document.createElement("pre");
-  pre.dataset.language = language;
-  const code = document.createElement("code");
-  code.dataset.language = language;
-  code.textContent = text;
-  code.spellcheck = false;
-  pre.append(code);
-  return pre;
-}
-
-function insertEmptyCodeBlockAtRange(range, language) {
-  if (!range
-    || !noteContent.contains(range.startContainer)
-    || !noteContent.contains(range.endContainer)) return false;
-  const existingFormatting = getCodeFormattingAncestor(range.startContainer);
-  const existingBlock = existingFormatting?.closest("pre");
-  if (existingBlock) {
-    range.selectNode(existingBlock);
-    range.collapse(false);
-  }
-  const codeBlock = createCodeBlock("", language);
-  range.deleteContents();
-  range.insertNode(codeBlock);
-  selectCodeBlock(range, codeBlock);
-  return true;
-}
-
-function selectCodeBlock(range, pre) {
-  ensureCodeBlockContinuation(pre);
-  const code = pre.querySelector("code");
-  range.selectNodeContents(code);
-  const selection = window.getSelection();
-  selection.removeAllRanges();
-  selection.addRange(range);
-  saveEditorSelection();
-  noteContent.dispatchEvent(new Event("input", { bubbles: true }));
-}
-
 function deleteCodeBlock(codeBlock) {
   if (!codeBlock || !noteContent.contains(codeBlock)) return false;
   const range = document.createRange();
@@ -415,45 +353,6 @@ function deleteCodeBlock(codeBlock) {
   selection.addRange(range);
   saveEditorSelection();
   noteContent.dispatchEvent(new Event("input", { bubbles: true }));
-  return true;
-}
-
-function applyCodeFormatting() {
-  restoreEditorSelection();
-  const range = getEditorSelectionRange() || savedEditorSelection?.cloneRange();
-  if (!range) {
-    setGlobalStatus("Coloca el cursor o selecciona el texto para insertar un cuadro de código.", true);
-    return false;
-  }
-
-  const language = "auto";
-  const existingFormatting = getCodeFormattingForRange(range);
-  if (existingFormatting) {
-    if (existingFormatting.tagName === "SPAN") {
-      const codeBlock = createCodeBlock(existingFormatting.textContent, language);
-      existingFormatting.replaceWith(codeBlock);
-      selectCodeBlock(range, codeBlock);
-      return true;
-    }
-    const codeBlock = existingFormatting.closest("pre");
-    if (codeBlock) {
-      return insertEmptyCodeBlockAtRange(range, language);
-    } else {
-      const wrappedBlock = createCodeBlock(existingFormatting.textContent, language);
-      existingFormatting.replaceWith(wrappedBlock);
-      selectCodeBlock(range, wrappedBlock);
-    }
-    return true;
-  }
-  const selectedText = getPlainTextFromRichContent(range.cloneContents());
-  if (range.collapsed || !selectedText) {
-    return insertEmptyCodeBlockAtRange(range, language);
-  }
-
-  range.deleteContents();
-  const codeBlock = createCodeBlock(selectedText, language);
-  range.insertNode(codeBlock);
-  selectCodeBlock(range, codeBlock);
   return true;
 }
 
@@ -833,7 +732,6 @@ function openSelectedTextContextMenu(event) {
   savedEditorSelection = contextMenuRange.cloneRange();
   cutSelectedText.disabled = !selectedRange;
   copySelectedText.disabled = !selectedRange;
-  insertCodeBlock.disabled = Boolean(selectedRange);
   formatSelectedText.disabled = !selectedRange;
 
   noteContextMenuAnchor.style.left = `${x}px`;
@@ -888,12 +786,6 @@ noteContent.addEventListener("contextmenu", openSelectedTextContextMenu);
 cutSelectedText.addEventListener("click", cutContextText);
 copySelectedText.addEventListener("click", copyContextText);
 pasteIntoNote.addEventListener("click", pasteContextText);
-insertCodeBlock.addEventListener("click", () => {
-  const range = contextMenuRange?.cloneRange();
-  closeNoteContextMenu(range);
-  if (!range || !range.collapsed || !canEditCurrentNoteContent()) return;
-  insertEmptyCodeBlockAtRange(range, "auto");
-});
 formatSelectedText.addEventListener("click", () => {
   const range = contextMenuRange?.cloneRange();
   closeNoteContextMenu(range);
@@ -985,10 +877,6 @@ formatToolbar.querySelectorAll("[data-format-command]").forEach((button) => {
     event.preventDefault();
   });
   button.addEventListener("click", () => applyToggleFormat(button.dataset.formatCommand));
-});
-applyCodeFormat.addEventListener("pointerdown", (event) => event.preventDefault());
-applyCodeFormat.addEventListener("click", () => {
-  if (applyCodeFormatting()) closeFormatDialog(true);
 });
 codeBlockActions.addEventListener("change", (event) => {
   const languageSelect = event.target instanceof HTMLSelectElement
