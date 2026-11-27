@@ -1,5 +1,8 @@
 .app-shell { display: flex; height: 100vh; height: 100dvh; min-height: 0; flex-direction: column; }
-.app-header { position: sticky; z-index: 5; top: 0; padding: 10px clamp(18px, 3vw, 42px); background: var(--header); box-shadow: none; }
+.app-header { position: sticky; z-index: 5; top: 10px; margin: 10px clamp(10px, 2vw, 15px) 0; border-radius: var(--panel-radius); padding: 10px clamp(18px, 3vw, 42px); background: #353535; color: #fff; box-shadow: 0 3px 8px rgb(20 24 32 / 18%), 0 12px 28px rgb(20 24 32 / 25%), 0 0 0 1px rgb(20 24 32 / 7%); }
+.app-header svg,.app-header .material-symbols-outlined { color: #fff; }
+.app-header .icon-button { color: #fff; }
+.app-header .icon-button:hover { background: rgb(255 255 255 / 12%); }
 .app-header__top,.app-header__controls,.app-header__user-tools,.account-menu,.note-tabbar,.note-tabbar__label,.note-tabbar__content,.note-editor__toolbar,.note-actions { display: flex; align-items: center; }
 .app-header__top { min-height: 40px; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .app-header__controls { min-width: max-content; flex: 1; flex-wrap: nowrap; justify-content: flex-start; gap: 9px; }
@@ -142,7 +145,7 @@
 .note-editor__date-line .save-status { flex: 0 1 auto; }
 .note-sharing-status { min-width: 0; overflow: hidden; color: var(--muted-strong); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .note-sharing-status:empty { display: none; }
-.note-tabbar-shell { flex: 0 0 auto; margin: 10px clamp(18px, 3vw, 42px) 0; border-radius: var(--panel-radius); padding: 0 12px; background: var(--surface); box-shadow: var(--shadow); }
+.note-tabbar-shell { flex: 0 0 auto; margin: 10px clamp(18px, 3vw, 42px) 0; border-radius: var(--panel-radius); padding: 0 12px; background: var(--surface); box-shadow: 0 4px 9px rgb(25 34 48 / 8%), 0 10px 24px rgb(25 34 48 / 12%), 0 0 0 1px rgb(25 34 48 / 3%); }
 .note-tabbar { gap: 12px; min-height: 46px; }
 .note-tabbar__label { flex: 0 0 auto; gap: 8px; color: var(--muted-strong); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .note-tabbar__count { color: var(--muted); font-weight: 500; letter-spacing: 0; }

@@ -3,11 +3,12 @@
   font-family: Inter, "Segoe UI", system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --page: #F6F7F9;
-  --surface: #e9e9e9;
-  --surface-soft: #F7F8FA;
+  --page: #F8FAFD;
+  --surface: #F0F4F9;
+  --surface-soft: #F0F4F9;
+  --canvas: #FFFFFF;
   --input-surface: var(--surface-soft);
-  --header: #F6F7F9;
+  --header: #F8FAFD;
   --text: #242832;
   --muted: #6B7280;
   --muted-strong: #687282;
@@ -49,6 +50,7 @@
   --page: #292929;
   --surface: #303030;
   --surface-soft: #303030;
+  --canvas: #303030;
   --input-surface: var(--page);
   --header: #303030;
   --text: #F1F1F1;
