@@ -3,29 +3,29 @@
   font-family: Inter, "Segoe UI", system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --page: #F8FAFD;
-  --surface: #F0F4F9;
-  --surface-soft: #F0F4F9;
-  --canvas: #FFFFFF;
+  --page: #F2F2F5;
+  --surface: #C9C9D2;
+  --surface-soft: #F2F2F5;
+  --canvas: #F2F2F5;
   --input-surface: var(--surface-soft);
-  --header: #F8FAFD;
-  --text: #242832;
-  --muted: #6B7280;
-  --muted-strong: #687282;
-  --text-soft: #343B46;
-  --text-strong: #050607;
-  --placeholder: #9299A4;
-  --hover: rgb(36 48 64 / 6%);
-  --selected: #E8EDF2;
-  --selected-text: #26384B;
-  --tab-active: #FFFFFF;
-  --line: #E2E6EB;
-  --accent: #101010;
-  --accent-contrast: #FFFFFF;
-  --icon-accent: #101010;
-  --shared-note-accent: #526B86;
-  --accent-soft: rgb(82 107 134 / 13%);
-  --ambient-accent: rgb(82 107 134 / 4%);
+  --header: #F2F2F5;
+  --text: #232327;
+  --muted: #63636E;
+  --muted-strong: #63636E;
+  --text-soft: #3E3E45;
+  --text-strong: #0E0E10;
+  --placeholder: #9A9AA6;
+  --hover: rgb(62 62 69 / 8%);
+  --selected: #C9C9D2;
+  --selected-text: #232327;
+  --tab-active: #F2F2F5;
+  --line: #9A9AA6;
+  --accent: #232327;
+  --accent-contrast: #F2F2F5;
+  --icon-accent: #3E3E45;
+  --shared-note-accent: #63636E;
+  --accent-soft: rgb(62 62 69 / 14%);
+  --ambient-accent: rgb(62 62 69 / 5%);
   --danger: #B3434C;
   --danger-soft: rgb(179 67 76 / 10%);
   --success: #34745D;
@@ -34,15 +34,15 @@
   --shadow: 0 2px 6px rgb(65 85 120 / 5%), 0 12px 28px rgb(65 85 120 / 7%), 0 28px 56px rgb(65 85 120 / 10%);
   --shadow-hover: 0 6px 12px rgb(65 85 120 / 7%), 0 22px 48px rgb(65 85 120 / 10%), 0 48px 88px rgb(65 85 120 / 14%);
   --panel-radius: 18px;
-  --idea-surface: #EEF2F6;
-  --idea-text: #526B86;
-  --notice-surface: #EEF2F6;
-  --notice-text: #34445A;
-  --notice-link: #526B86;
-  --search-highlight: rgb(82 107 134 / 14%);
-  --search-highlight-current: rgb(82 107 134 / 24%);
-  --search-decoration: rgb(82 107 134 / 55%);
-  --text-selection: rgb(82 107 134 / 20%);
+  --idea-surface: #C9C9D2;
+  --idea-text: #3E3E45;
+  --notice-surface: #C9C9D2;
+  --notice-text: #232327;
+  --notice-link: #3E3E45;
+  --search-highlight: rgb(154 154 166 / 24%);
+  --search-highlight-current: rgb(99 99 110 / 34%);
+  --search-decoration: #63636E;
+  --text-selection: rgb(99 99 110 / 25%);
 }
 
 :root[data-theme="dark"] {
@@ -64,12 +64,12 @@
   --selected-text: #FFFFFF;
   --tab-active: #414141;
   --line: rgb(255 255 255 / 42%);
-  --accent: #D3A21D;
+  --accent: #FFFFFF;
   --accent-contrast: #161616;
   --icon-accent: var(--text-soft);
   --shared-note-accent: var(--accent);
-  --accent-soft: rgb(211 162 29 / 22%);
-  --ambient-accent: rgb(211 162 29 / 12%);
+  --accent-soft: rgb(255 255 255 / 22%);
+  --ambient-accent: rgb(255 255 255 / 12%);
   --danger: #ff6b6b;
   --danger-soft: rgb(255 107 107 / 14%);
   --success: #73D68A;
@@ -78,12 +78,12 @@
   --shadow: 0 2px 6px rgb(30 30 30 / 35%), 0 14px 32px rgb(30 30 30 / 45%), 0 32px 64px rgb(30 30 30 / 55%);
   --shadow-hover: 0 8px 18px rgb(30 30 30 / 38%), 0 26px 56px rgb(30 30 30 / 50%), 0 56px 100px rgb(30 30 30 / 62%);
   --idea-surface: #303030;
-  --idea-text: #D3A21D;
-  --notice-surface: rgb(211 162 29 / 12%);
-  --notice-text: #F1D58A;
-  --notice-link: #D3A21D;
-  --search-highlight: #D3A21D;
-  --search-highlight-current: #F1D58A;
+  --idea-text: #FFFFFF;
+  --notice-surface: rgb(255 255 255 / 12%);
+  --notice-text: #FFFFFF;
+  --notice-link: #FFFFFF;
+  --search-highlight: rgb(255 255 255 / 24%);
+  --search-highlight-current: rgb(255 255 255 / 42%);
   --search-decoration: var(--accent);
   --text-selection: #BEBEBE;
   --text-selection-color: #000000;
@@ -104,7 +104,7 @@
 }
 
 @media (hover: hover) {
-  :root :is(.auth-card, .note-editor, .notes-library-item, .share-dialog, .confirm-dialog, .format-dialog, .format-dialog.is-selection-toolbar, .note-context-menu, .note-find, .note-tabbar-shell, .settings-menu, .account-popover):hover {
+  :root :is(.auth-card, .notes-library-item, .share-dialog, .confirm-dialog, .format-dialog, .format-dialog.is-selection-toolbar, .note-context-menu, .note-find, .settings-menu, .account-popover):hover {
     box-shadow: var(--shadow-hover);
   }
 }

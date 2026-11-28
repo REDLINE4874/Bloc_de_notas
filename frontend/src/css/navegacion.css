@@ -1,13 +1,24 @@
 .app-shell { display: flex; height: 100vh; height: 100dvh; min-height: 0; flex-direction: column; }
-.app-header { position: sticky; z-index: 5; top: 10px; margin: 10px clamp(10px, 2vw, 15px) 0;  padding: 10px clamp(18px, 3vw, 42px);  color: #1B1B1B; box-shadow: 0 3px 8px rgb(20 24 32 / 12%), 0 12px 28px rgb(20 24 32 / 18%), 0 0 0 1px rgb(20 24 32 / 5%); }
-.app-header svg,.app-header .material-symbols-outlined { color: #1B1B1B; }
-.app-header .icon-button { color: #1B1B1B; }
+.app-header { position: sticky; z-index: 7; top: 0; width: 100%; margin: 0; padding: 10px clamp(18px, 3vw, 42px); background: var(--header); color: var(--text); box-shadow: 0 3px 8px rgb(20 24 32 / 12%), 0 12px 28px rgb(20 24 32 / 18%), 0 0 0 1px rgb(20 24 32 / 5%); }
+.app-header svg,.app-header .material-symbols-outlined { color: var(--text-soft); }
+.app-header .icon-button { color: var(--text-soft); }
 .app-header .icon-button:hover { background: rgb(27 27 27 / 8%); }
-:root[data-theme="dark"] .app-header { background: #353535; color: #fff; box-shadow: 0 3px 8px rgb(20 24 32 / 18%), 0 12px 28px rgb(20 24 32 / 25%), 0 0 0 1px rgb(20 24 32 / 7%); }
+:root[data-theme="dark"] .app-header { background: linear-gradient(180deg, #292929 0%, #303030 100%); color: #fff; box-shadow: none; }
 :root[data-theme="dark"] .app-header svg,
 :root[data-theme="dark"] .app-header .material-symbols-outlined,
 :root[data-theme="dark"] .app-header .icon-button { color: #fff; }
 :root[data-theme="dark"] .app-header .icon-button:hover { background: rgb(255 255 255 / 12%); }
+:root:not([data-theme="dark"]) .app-header { background: linear-gradient(180deg, #0E0E10 0%, #232327 55%, #3E3E45 100%); color: #F2F2F5; box-shadow: none; }
+:root:not([data-theme="dark"]) .app-header svg,
+:root:not([data-theme="dark"]) .app-header .material-symbols-outlined,
+:root:not([data-theme="dark"]) .app-header .icon-button { color: #F2F2F5; }
+:root:not([data-theme="dark"]) .app-header .icon-button:hover { background: rgb(242 242 245 / 14%); }
+:root:not([data-theme="dark"]) .app-header .section-icon-button[aria-current="page"] { background: rgb(242 242 245 / 18%); color: #F2F2F5; }
+:root:not([data-theme="dark"]) .app-header .icon-button:focus-visible { outline: 2px solid #C9C9D2; outline-offset: 2px; }
+:root:not([data-theme="dark"]) .app-header .theme-toggle:not([aria-checked="true"]) .theme-toggle__icon--sun { color: #0E0E10; }
+:root:not([data-theme="dark"]) .app-header .floating-label,
+:root:not([data-theme="dark"]) .note-tabbar-shell .floating-label { background: #F2F2F5; color: #232327; }
+:root:not([data-theme="dark"]) .app-header .account-avatar { background: #C9C9D2; color: #232327; }
 .app-header__top,.app-header__controls,.app-header__user-tools,.account-menu,.note-tabbar,.note-tabbar__label,.note-tabbar__content,.note-editor__toolbar,.note-actions { display: flex; align-items: center; }
 .app-header__top { min-height: 40px; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .app-header__controls { min-width: max-content; flex: 1; flex-wrap: nowrap; justify-content: flex-start; gap: 9px; }
@@ -150,25 +161,28 @@
 .note-editor__date-line .save-status { flex: 0 1 auto; }
 .note-sharing-status { min-width: 0; overflow: hidden; color: var(--muted-strong); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .note-sharing-status:empty { display: none; }
-.note-tabbar-shell { position: relative; z-index: 6; flex: 0 0 auto; width: 100%; margin: 10px 0 0; border-radius: 0; padding: 0 clamp(16px, 3vw, 32px); background: var(--surface); box-shadow: 0 4px 9px rgb(25 34 48 / 8%), 0 10px 24px rgb(25 34 48 / 12%), 0 0 0 1px rgb(25 34 48 / 3%); }
+.note-tabbar-shell { position: relative; z-index: 6; flex: 0 0 auto; width: 100%;  border-radius: 0; padding: 0 clamp(16px, 3vw, 32px); background: var(--surface); box-shadow: 0 4px 9px rgb(25 34 48 / 8%), 0 10px 24px rgb(25 34 48 / 12%), 0 0 0 1px rgb(25 34 48 / 3%); }
 :root :is(.note-tabbar-shell).note-tabbar-shell { border-radius: 0; }
-:root:not([data-theme="dark"]) .note-tabbar-shell { background: #1B1B1B; color: #F5F5F5; box-shadow: 0 4px 9px rgb(25 34 48 / 12%), 0 10px 24px rgb(25 34 48 / 20%), 0 0 0 1px rgb(25 34 48 / 12%); }
+:root:not([data-theme="dark"]) .note-tabbar-shell { background: linear-gradient(180deg, #3E3E45 0%, #63636E 100%); color: #F2F2F5; box-shadow: none; }
+:root[data-theme="dark"] .note-tabbar-shell { background: linear-gradient(180deg, #303030 0%, #414141 100%); box-shadow: none; }
 :root:not([data-theme="dark"]) .note-tabbar-shell .note-tabbar__label,
 :root:not([data-theme="dark"]) .note-tabbar-shell .note-tabbar__count,
-:root:not([data-theme="dark"]) .note-tabbar-shell .note-tab__meta,
-:root:not([data-theme="dark"]) .note-tabbar-shell .note-tab__close { color: #C8C8C8; }
+:root:not([data-theme="dark"]) .note-tabbar-shell .note-tab__close { color: #F2F2F5; }
+:root:not([data-theme="dark"]) .note-tabbar-shell .note-tabbar__label { text-shadow: 0 1px 2px rgb(14 14 16 / 35%); }
 :root:not([data-theme="dark"]) .note-tabbar-shell .note-tab-item:hover,
 :root:not([data-theme="dark"]) .note-tabbar-shell .note-tab-item:focus-within { background: rgb(255 255 255 / 10%); }
-:root:not([data-theme="dark"]) .note-tabbar-shell .note-tab-item.is-active { background: #F0F4F9; }
+:root:not([data-theme="dark"]) .note-tabbar-shell .note-tab-item.is-active { background: #F2F2F5; }
 :root:not([data-theme="dark"]) .note-tabbar-shell .note-tab-item.is-active .note-tab,
 :root:not([data-theme="dark"]) .note-tabbar-shell .note-tab-item.is-active .note-tab__meta,
-:root:not([data-theme="dark"]) .note-tabbar-shell .note-tab-item.is-active .note-tab__close { color: #1B1B1B; }
+:root:not([data-theme="dark"]) .note-tabbar-shell .note-tab-item.is-active .note-tab__close { color: #232327; }
 :root:not([data-theme="dark"]) .note-tabbar-shell .tab-create,
-:root:not([data-theme="dark"]) .note-tabbar-shell .tab-history { color: #F5F5F5; }
+:root:not([data-theme="dark"]) .note-tabbar-shell .tab-history { color: #F2F2F5; }
 :root:not([data-theme="dark"]) .note-tabbar-shell .tab-history:disabled { opacity: .65; }
 :root:not([data-theme="dark"]) .note-tabbar-shell .tab-create:hover,
 :root:not([data-theme="dark"]) .note-tabbar-shell .tab-history:hover:not(:disabled) { background: rgb(255 255 255 / 12%); }
-:root:not([data-theme="dark"]) .note-tabbar-shell .tab-scroll { background: #393939; color: #F5F5F5; }
+:root:not([data-theme="dark"]) .note-tabbar-shell .tab-scroll { background: #3E3E45; color: #F2F2F5; }
+:root:not([data-theme="dark"]) .note-tabbar-shell .tab-scroll:hover { background: #232327; }
+:root:not([data-theme="dark"]) .note-tabbar-shell :is(.tab-create, .tab-history, .tab-scroll):focus-visible { outline: 2px solid #F2F2F5; outline-offset: 2px; }
 .note-tabbar-shell .tab-create svg { color: currentColor; }
 .note-tabbar { gap: 12px; min-height: 46px; }
 .note-tabbar__label { flex: 0 0 auto; gap: 8px; color: var(--muted-strong); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
@@ -191,10 +205,10 @@
 .note-tab__close:focus-visible { color: var(--danger); }
 .note-tab__close .material-symbols-outlined { color: currentColor; font-size: 18px; }
 .note-tab:focus-visible,.note-tab__close:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-:root:not([data-theme="dark"]) .note-tabbar-shell .note-tab-item:not(.is-active) .note-tab { color: #F5F5F5; }
-:root:not([data-theme="dark"]) .note-tabbar-shell .note-tab-item:not(.is-active) .note-tab__meta { color: #BDBDBD; }
+:root:not([data-theme="dark"]) .note-tabbar-shell .note-tab-item:not(.is-active) .note-tab { color: #F2F2F5; }
+:root:not([data-theme="dark"]) .note-tabbar-shell .note-tab-item:not(.is-active) .note-tab__meta { color: #C9C9D2; }
 :root:not([data-theme="dark"]) .note-tabbar-shell .note-tab__close .material-symbols-outlined { color: currentColor; }
-:root:not([data-theme="dark"]) .note-tabbar-shell .tab-history .material-symbols-outlined { color: #F5F5F5; }
+:root:not([data-theme="dark"]) .note-tabbar-shell .tab-history .material-symbols-outlined { color: #F2F2F5; }
 .tab-create { width: 34px; height: 34px; align-self: center; margin-inline: 0 2px; }
 .tab-create svg { width: 22px; height: 22px; }
 .tab-history-controls { display: flex; flex: 0 0 auto; align-items: center; gap: 2px; margin-inline-start: auto; }

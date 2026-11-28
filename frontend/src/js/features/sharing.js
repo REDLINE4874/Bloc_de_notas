@@ -13,7 +13,10 @@ function positionShareSelectOptions(root) {
   const triggerRect = trigger.getBoundingClientRect();
   const viewportPadding = 8;
   const menuGap = 6;
-  const menuWidth = Math.min(triggerRect.width, window.innerWidth - viewportPadding * 2);
+  const desiredMenuWidth = root.classList.contains("developer-language-select")
+    ? Math.max(triggerRect.width, 190)
+    : triggerRect.width;
+  const menuWidth = Math.min(desiredMenuWidth, window.innerWidth - viewportPadding * 2);
   const menuLeft = Math.max(
     viewportPadding,
     Math.min(triggerRect.left, window.innerWidth - menuWidth - viewportPadding),

@@ -1,4 +1,4 @@
-.workspace { position: relative; display: flex; min-width: 0; min-height: 0; flex: 1; flex-direction: column; padding: 10px 0 0; }
+.workspace { position: relative; display: flex; min-width: 0; min-height: 0; flex: 1; flex-direction: column;  }
 .note-find { position: absolute; z-index: 4; top: 30px; right: clamp(16px, 4vw, 60px); display: flex; width: min(440px, calc(100vw - 32px)); min-height: 40px; align-items: center; gap: 5px; border: 0; border-radius: 9px; padding: 4px 5px 4px 10px; background: var(--surface); box-shadow: 0 8px 26px rgb(25 34 56 / 18%); }
 .note-find[hidden] { display: none; }
 .note-find:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -24,7 +24,8 @@
 .empty-state h1 { margin: 18px 0 8px; font-size: clamp(1.4375rem, 1.1875rem + 1vw, 1.875rem); font-weight: 650; letter-spacing: -.035em; }
 .empty-state p { max-width: 390px; margin: 0 0 20px; color: var(--muted); font-size: 14px; line-height: 1.6; }
 .note-editor { display: flex; width: 100%; min-height: 0; flex: 1; flex-direction: column; align-self: stretch; margin: 0; border: 0; padding: clamp(20px, 3vw, 30px); background: var(--canvas); }
-:root :is(.note-editor).note-editor { border-radius: 0; }
+:root :is(.note-editor).note-editor { border-radius: 0; box-shadow: inset 0 7px 9px -9px rgb(14 14 16 / 38%); }
+:root[data-theme="dark"] :is(.note-editor).note-editor { box-shadow: inset 0 7px 9px -9px rgb(0 0 0 / 55%); }
 .note-editor__toolbar { justify-content: space-between; align-items: flex-start; gap: 16px; }
 .note-editor__meta { display: grid; min-width: 0; flex: 1; grid-template-columns: max-content minmax(0, 1fr); column-gap: 12px; row-gap: 4px; align-items: baseline; }
 .note-date { color: var(--danger); font-size: 12px; }
@@ -66,13 +67,14 @@
 .note-content-highlights[hidden] { display: none; }
 .developer-toolbar { display: flex; min-height: 34px; align-items: center; gap: 8px; margin-top: 16px; color: var(--muted); font-size: 12px; }
 .developer-toolbar[hidden] { display: none; }
-.developer-toolbar .developer-language-select { width: min(190px, 52vw); }
-.developer-toolbar .share-select__trigger { min-height: 34px; border-radius: 8px; background: var(--surface-soft); font: inherit; font-size: 12px; }
+.developer-toolbar .developer-language-select { width: fit-content; max-width: min(190px, 52vw); }
+.developer-toolbar .share-select__trigger { width: fit-content; max-width: 100%; min-height: 34px; justify-content: flex-start; gap: 7px; border-radius: 8px; padding-inline: 10px; background: var(--surface-soft); font: inherit; font-size: 12px; }
+.developer-toolbar .share-select__trigger > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .developer-toolbar .share-select__trigger:disabled { opacity: .6; cursor: not-allowed; }
-.note-content-wrap.is-developer-mode { border-radius: 14px; background: var(--code-surface); }
-.note-content.is-developer-mode,.note-content-highlights.is-developer-mode { padding: 14px; font-family: "Fira Code", "Cascadia Code", "SFMono-Regular", Consolas, monospace; font-size: 14px; font-weight: 500; line-height: 1.65; }
-.note-content.is-developer-mode,.note-content-highlights.is-developer-mode { color: var(--code-text); }
-.note-content.is-developer-mode:empty::before { color: var(--code-text-soft); }
+.note-content-wrap.is-developer-mode { border-radius: 0; background: transparent; }
+.note-content.is-developer-mode,.note-content-highlights.is-developer-mode { padding: 0; font-family: "Fira Code", "Cascadia Code", "SFMono-Regular", Consolas, monospace; font-size: 14px; font-weight: 500; line-height: 1.65; }
+.note-content.is-developer-mode,.note-content-highlights.is-developer-mode { color: var(--text); }
+.note-content.is-developer-mode:empty::before { color: var(--placeholder); }
 .note-content-highlights.is-developer-mode { white-space: pre-wrap; overflow-wrap: break-word; }
 .note-content-highlights.is-developer-mode .developer-code-source { min-height: 100%; }
 .note-content.is-developer-mode.is-syntax-highlighted { caret-color: var(--code-text); }
@@ -99,9 +101,9 @@
 .note-content code,.note-content-highlights code { font-family: "Fira Code", "Cascadia Code", "SFMono-Regular", Consolas, monospace; font-variant-ligatures: contextual common-ligatures; }
 .note-content-highlights code u { text-decoration-line: underline; text-decoration-color: var(--code-accent); text-decoration-thickness: 2px; text-underline-offset: 2px; }
 .note-content pre[data-language] ::selection { background: var(--code-selection); color: var(--code-selection-text); -webkit-text-fill-color: var(--code-selection-text); text-decoration-color: var(--code-selection-text); }
-.note-content pre[data-language],.note-content-highlights pre[data-language] { position: relative; inline-size: 100%; min-inline-size: min(100%, 280px); max-inline-size: 100%; margin: 12px 0; border: 0; border-radius: 14px; background: var(--code-surface); color: var(--code-text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.note-content pre[data-language],.note-content-highlights pre[data-language] { position: relative; inline-size: 100%; min-inline-size: min(100%, 280px); max-inline-size: 100%; margin: 12px 0; border: 0; border-radius: 0; background: transparent; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
 .note-content:not(.is-syntax-highlighted) pre[data-language],.note-content-highlights pre[data-language] { color-scheme: dark; }
-.note-content pre[data-language] > code,.note-content-highlights pre[data-language] > code { display: block; min-block-size: calc(1.6em + 48px + 10px); margin: 0; border: 0; padding: 48px 14px 10px; background: transparent; color: var(--code-text); font-size: 13px; font-weight: 500; line-height: 1.65; white-space: inherit; overflow-wrap: inherit; }
+.note-content pre[data-language] > code,.note-content-highlights pre[data-language] > code { display: block; min-block-size: calc(1.6em + 48px + 10px); margin: 0; border: 0; padding: 48px 0 10px; background: transparent; color: var(--text); font-size: 13px; font-weight: 500; line-height: 1.65; white-space: inherit; overflow-wrap: inherit; }
 .code-block-actions { position: absolute; z-index: 2; inset: 0; overflow: hidden; pointer-events: none; }
 .code-block-copy-control { position: absolute; top: var(--code-control-top); right: var(--code-control-right); display: flex; align-items: flex-start; gap: 6px; pointer-events: auto; }
 .code-block-copy-control[hidden] { display: none; }
